@@ -4,7 +4,7 @@ const profileRouter = require('./profile')
 
 function route(app) {
     app.use('/auth', authRouter)
-    app.use('/posts', postRouter)
+    app.use('/post', postRouter)
     app.use('/', profileRouter)
 }
 
