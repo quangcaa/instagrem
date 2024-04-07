@@ -2,7 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const path = require('path')
 const route = require('./routes')
-const db = require('./config/db')
+const mongodb_con = require('./config/db/mongodb')
 require('dotenv').config()
 
 const app = express()
@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 // Connect to db
-db.connect()
+mongodb_con.connect()
 
 // Static files (public)
 app.use(express.static(path.join(__dirname, 'public')))
