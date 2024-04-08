@@ -7,17 +7,17 @@ const Post = require('../models/Post')
 // create post
 // Private
 router.post('/create', async (req, res) => {
-    const { caption, post_type } = req.body
+    const { user_id, caption, post_type } = req.body
 
     try {
-        const newPost = new Post({ caption, post_type })
+        const newPost = new Post({ user_id, caption, post_type })
 
-        await newPost.save() 
+        await newPost.save()
 
-        res.json({success:true, message: 'Created post !'})
+        res.json({ success: true, message: 'Created post !' })
     } catch (error) {
         console.log(error)
-        res.status(500).json({ success: false , message: 'Internal server error'})
+        res.status(500).json({ success: false, message: 'Internal server error' })
     }
 })
 
