@@ -1,12 +1,5 @@
-import "./App.css";
-import Homepage from "./Homepage";
-
 function App() {
-  return (
-    <div className="app">
-      <Homepage />
-    </div>
-  );
+  return <h1>THIS is front end</h1>;
 }
 
 export default App;
