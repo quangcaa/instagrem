@@ -1,7 +1,7 @@
 const Post = require('../models/Post')
 
 class PostController {
-    // [POST] /posts/create
+    // [POST] /post/create
     // create post
     // Private
     createPost(req, res, next) {
@@ -26,7 +26,7 @@ class PostController {
         // }
     }
 
-    // [POST] /posts/
+    // [GET] /post/
     // Show post
     // Public
     showPost(req, res, next) {
