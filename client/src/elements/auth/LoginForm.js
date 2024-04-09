@@ -1,12 +1,14 @@
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form'; // Import 'Form' directly from 'react-bootstrap'
-import { Link } from 'react-router-dom';
+import Form from 'react-bootstrap/Form'; 
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthContext';
 
 const LoginForm = () => {
     // Context
     const { loginUser } = useContext(AuthContext);
+
+    const navigate = useNavigate();
 
     const [loginForm, setLoginForm] = useState({
         username: '',
@@ -17,12 +19,17 @@ const LoginForm = () => {
 
     const onChangeLoginForm = event => setLoginForm({ ...loginForm, [event.target.name]: event.target.value });
 
-    const login = async event => {
+    const login = async (event) => {
         event.preventDefault();
 
         try {
             const loginData = await loginUser(loginForm);
-            console.log(loginData)
+            console.log('loginData:', loginData)
+            if (loginData.success) {
+                navigate('/newfeed');
+            } else {
+                navigate('/register');
+            }
         } catch (error) {
             console.log(error)
         }
