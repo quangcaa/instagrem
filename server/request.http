@@ -25,7 +25,7 @@ Content-Type: application/json
 
 POST http://localhost:1000/post/create
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1Nzg5MX0.VJh5jFNkRvm3vQxHimqpH_EZTf3gOOFU5UyqlMRQABk
 
 {
     "caption": "test [put]",
@@ -36,7 +36,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 ###
 
 GET http://localhost:1000/post
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMjI2MX0.pwYeALif1mpAmykheoTir7AUReWN3a58Q1iC2SYuiXY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1MDE3MX0._djjpG09p_1XjS30veovmc79HIj63DUaps0LtsCRfLk
 
 ###
 
@@ -50,9 +50,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
     "mentions": "ha"
 }
 ###
-
 DELETE http://localhost:1000/post/21
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
 
+
+###
+
+###
+POST http://localhost:1000/auth/logout
 
 ###
