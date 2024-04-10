@@ -1,0 +1,58 @@
+GET http://localhost:1000
+
+###
+
+POST http://localhost:1000/auth/login
+Content-Type: application/json
+
+{
+    "username": "hels",
+    "password": "cc"
+}
+
+###
+
+POST http://localhost:1000/auth/register
+Content-Type: application/json
+
+{
+    "username": "deohieu",
+    "email": "cascxcvzxv",
+    "password": "cc"
+}
+
+###
+
+POST http://localhost:1000/post/create
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+
+{
+    "caption": "test [put]",
+    "hashtags": "dzco1ko2",
+    "mentions": "mwahnga"
+}
+
+###
+
+GET http://localhost:1000/post
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMjI2MX0.pwYeALif1mpAmykheoTir7AUReWN3a58Q1iC2SYuiXY
+
+###
+
+PUT http://localhost:1000/post/21
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+
+{
+    "caption": "test test cai lin",
+    "hashtags": "tagcc",
+    "mentions": "ha"
+}
+###
+
+DELETE http://localhost:1000/post/21
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+
+
+###

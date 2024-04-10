@@ -19,7 +19,8 @@ class AuthController {
         try {
             // check if user exists
             const checkUserQuery = `
-                                   SELECT * FROM users WHERE username = ?
+                                   SELECT * FROM users 
+                                   WHERE username = ?
                                    `
             mysql_con.query(checkUserQuery, [username], async (error, results) => {
                 if (error) {
@@ -38,8 +39,10 @@ class AuthController {
                     return res.status(401).json({ success: false, error: 'Invalid username or password' })
                 }
 
+                console.log('User login with ID: ' + user.user_id)
+
                 // Return access token
-                const accessToken = jwt.sign({ userId: results.insertId }, process.env.ACCESS_TOKEN_SECRET)
+                const accessToken = jwt.sign({ userId: user.user_id }, process.env.ACCESS_TOKEN_SECRET)
                 res.json({ success: true, message: 'Login successful', accessToken })
                 // req.session.user = user
             })
