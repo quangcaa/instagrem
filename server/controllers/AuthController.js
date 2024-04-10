@@ -107,6 +107,12 @@ class AuthController {
         }
     }
 
+    // @route POST /auth/logout
+    // @desc Logout user
+    // @access Private
+    async logout (req, res) {
+        res.json({ success: true, message: 'User logged out successfully' })
+    }
 }
 
 module.exports = new AuthController()

@@ -1,5 +1,3 @@
-const User = require('../models/User');
-
 class ProfileController {
   
     async getUserProfile(req, res, next) {

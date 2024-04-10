@@ -3,8 +3,8 @@ require('dotenv').config()
 
 const verifyToken = (req, res, next) => {
     const authorizationHeader = req.header('Authorization')
-
     const token = authorizationHeader && authorizationHeader.split(' ')[1]
+    
     if (!token) {
         return res.status(401).json({ success: false, message: 'Access token not found' })
     }
