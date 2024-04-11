@@ -39,7 +39,6 @@ GET http://localhost:1000/post
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1MDE3MX0._djjpG09p_1XjS30veovmc79HIj63DUaps0LtsCRfLk
 
 ###
-
 PUT http://localhost:1000/post/21
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
@@ -60,3 +59,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 POST http://localhost:1000/auth/logout
 
 ###
+PATCH http://localhost:1000/auth/changePassword
+Content-Type: application/json
+Authorization: Bearer JJJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgwNzU3OH0.15X62TRDZQNIo-uhH-5yvj8E7F5ZpPg23Ds3jkDV8Hw
+
+{
+    "oldPassword": "kgongcoj",
+    "newPassword": "hahaahaha"
+}

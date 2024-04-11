@@ -1,12 +1,12 @@
 const express = require('express')
 const router = express.Router()
 
-const verifyToken = require('../middlewares/auth')
+const { requireAuth } = require('../middlewares/auth')
 const postController = require('../controllers/PostController')
 
-router.post('/create', verifyToken, postController.createPost)
-router.put('/:id', verifyToken, postController.updatePost)
-router.delete('/:id', verifyToken, postController.deletePost)
-router.get('/', verifyToken, postController.getPost)
+router.post('/create', requireAuth, postController.createPost)
+router.put('/:id', requireAuth, postController.updatePost)
+router.delete('/:id', requireAuth, postController.deletePost)
+router.get('/', requireAuth, postController.getPost)
 
 module.exports = router
