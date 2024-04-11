@@ -36,22 +36,9 @@ const Message = new Schema(
     }
 )
 
-const Story = new Schema(
-    {
-        _id: { type: String, default: uuidv4 },
-        user_id: { type: String, required: true },
-        media_url: { type: String, required: true },
-        status: { type: String, enum: ['POSTED', 'DELETED', 'ARCHIVED'] }
-    },
-    {
-        timestamps: { createdAt: 'posted_at' }
-    }
-)
-
 // add plugin
 Conversation.plugin(AutoIncrement)
 
 module.exports = mongoose.model('conversations', Conversation)
 module.exports = mongoose.model('messages', Message)
-module.exports = mongoose.model('stories', Story)
 

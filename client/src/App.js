@@ -1,25 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import './App.css'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+
+import Landing from './elements/layout/Landing'
+
+import AuthContextProvider from './contexts/AuthContext'
+
+import Auth from './views/Auth'
+import Newfeed from './views/Newfeed'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <AuthContextProvider>
+      <Router>
+        <Routes>
+          <Route exact path="/" element={<Landing />} />
+          <Route exact path="/login" element={<Auth authRoute='login' />} />
+          <Route exact path="/register" element={<Auth authRoute='register' />} />
+          <Route exact path="/newfeed" element={<Newfeed />} />
+        </Routes>
+      </Router>
+    </AuthContextProvider>
+  )
 }
 
-export default App;
+export default App
