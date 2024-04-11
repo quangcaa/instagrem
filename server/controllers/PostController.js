@@ -1,4 +1,5 @@
-const Post = require('../models/Post')
+const { Post, Like, Comment } = require('../models/Post')
+const mysql_con = require('../config/db/mysql')
 
 class PostController {
 
@@ -104,9 +105,66 @@ class PostController {
         }
     }
 
+    // @route [GET] /post/:post_id
+    // @desc find post by id
+    // @access Public
+    async getPostById(req, res) {
+        const { post_id } = req.params
 
+        try {
+            // get post by id
+            const post = await Post.findById({ _id: post_id })
+            if (!post) {
+                return res.status(404).json({ success: false, message: 'Post not found' })
+            }
 
-    
+            // get post author
+            const getPostAuthorQuery = `
+                                       SELECT * 
+                                       FROM users
+                                       WHERE user_id = ?
+                                       `
+            const getPostAuthor = (getPostAuthorQuery) => {
+                return new Promise((resolve, reject) => {
+                    mysql_con.query(getPostAutherQuery, [post.user_id], (error, results) => {
+                        if (error) {
+                            reject(error)
+                        }
+
+                        resolve(results[0])
+                    })
+                })
+            }
+            const postAuthor = await getPostAuthor(getPostAuthorQuery)
+
+            // get post likes 
+            const postLikes = await Like.find({ post_id })
+
+            // get post comments
+            const postComments = await Comment.find({ post_id })
+
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            res.json({
+                success: true,
+                post: {
+                    ...caption, media_url, likes_count, comments_count, createdAt
+                }, 
+                postAuthor: {
+                    user_id, username, profile_image_url
+                }, 
+                postLikes: {
+                    user_id
+                }, 
+                postComments: {
+                    user_id, comment, reply_to_comment_id, createdAt
+                }
+            })
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
 }
 
 module.exports = new PostController();
