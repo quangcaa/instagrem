@@ -1,6 +1,7 @@
 const mysql_con = require('../config/db/mysql')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
+const { registerValidator, changePasswordValidator } = require('../utils/validation')
 require('dotenv').config()
 
 class AuthController {
@@ -60,6 +61,12 @@ class AuthController {
         // get username, email and password from req.body
         const { username, email, password } = req.body
 
+        // check if username, email and password are valid
+        const { error } = registerValidator(req.body)
+        if (error) {
+            return res.status(422).send(error.details[0].message)
+        }
+
         // check if username, email and password are provided
         if (!username || !email || !password) {
             return res.status(400).json({ success: false, error: 'Missing username or email or password' })
@@ -110,8 +117,73 @@ class AuthController {
     // @route POST /auth/logout
     // @desc Logout user
     // @access Private
-    async logout (req, res) {
+    async logout(req, res) {
         res.json({ success: true, message: 'User logged out successfully' })
+    }
+
+
+    // @route PATCH /auth/changePassword
+    // @desc change user account password
+    // @access Private
+    async changePassword(req, res) {
+        const { oldPassword, newPassword } = req.body
+
+        const userId = req.userId
+
+        try {
+            // get current user password
+            const getUserPasswordQuery = `
+                                         SELECT password
+                                         FROM users
+                                         WHERE user_id = ?
+                                         `
+            const getUserPassword = (getUserPasswordQuery) => {
+                return new Promise((resolve, reject) => {
+                    mysql_con.query(getUserPasswordQuery, [userId], (error, results) => {
+                        if (error) {
+                            console.log(error)
+                            return res.status(500).json({ error: 'Internal Server Error' })
+                        }
+
+                        resolve(results[0].password)
+                    })
+                })
+            }
+            const userPassword = await getUserPassword(getUserPasswordQuery)
+
+            // check if old password is correct
+            const checkOldPassword = await argon2.verify(userPassword, oldPassword)
+            if (!checkOldPassword) {
+                return res.status(401).json({ success: false, error: 'Invalid old password' })
+            }
+
+            // check if new password is valid
+            const { error } = changePasswordValidator(newPassword)
+            if (error) {
+                return res.status(422).send(error.details[0].message)
+            }
+
+            // hash new password
+            const hashedPassword = await argon2.hash(newPassword)
+
+            // update user password
+            const updateNewPasswordQuery = `
+                                           UPDATE users
+                                           SET password = ?, updated_at = CURRENT_TIMESTAMP
+                                           WHERE user_id = ?
+                                           `
+            mysql_con.query(updateNewPasswordQuery, [hashedPassword, userId], (error, results) => {
+                if (error) {
+                    console.log(error)
+                    return res.status(500).json({ error: 'Internal Server Error' })
+                }
+
+                res.json({ success: true, message: 'Password changed successfully' })
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error: 'Internal Server Error' })
+        }
     }
 }
 
