@@ -61,9 +61,9 @@ POST http://localhost:1000/auth/logout
 ###
 PATCH http://localhost:1000/auth/changePassword
 Content-Type: application/json
-Authorization: Bearer JJJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgwNzU3OH0.15X62TRDZQNIo-uhH-5yvj8E7F5ZpPg23Ds3jkDV8Hw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
 
 {
-    "oldPassword": "kgongcoj",
-    "newPassword": "hahaahaha"
+    "oldPassword": "hahaahaha",
+    "newPassword": "c"
 }
