@@ -1,4 +1,6 @@
-const { Post, Like, Comment } = require('../models/Post')
+const Post = require('../models/Post')
+const Like = require('../models/Like')
+const Comment = require('../models/Comment')
 const mysql_con = require('../config/db/mysql')
 
 class PostController {
@@ -108,25 +110,25 @@ class PostController {
     // @route [GET] /post/:post_id
     // @desc find post by id
     // @access Public
-    async getPostById(req, res) {
+    async retrievePost(req, res) {
         const { post_id } = req.params
 
         try {
             // get post by id
-            const post = await Post.findById({ _id: post_id })
-            if (!post) {
+            const postById = await Post.findById(post_id, { post_type: 0, status: 0, updatedAt: 0 })
+            if (!postById || postById.status === 'DELETED' || postById.status === "ARCHIVED") {
                 return res.status(404).json({ success: false, message: 'Post not found' })
             }
 
             // get post author
             const getPostAuthorQuery = `
-                                       SELECT * 
+                                       SELECT username, profile_image_url
                                        FROM users
                                        WHERE user_id = ?
                                        `
             const getPostAuthor = (getPostAuthorQuery) => {
                 return new Promise((resolve, reject) => {
-                    mysql_con.query(getPostAutherQuery, [post.user_id], (error, results) => {
+                    mysql_con.query(getPostAuthorQuery, [postById.user_id], (error, results) => {
                         if (error) {
                             reject(error)
                         }
@@ -137,34 +139,109 @@ class PostController {
             }
             const postAuthor = await getPostAuthor(getPostAuthorQuery)
 
-            // get post likes 
-            const postLikes = await Like.find({ post_id })
-
             // get post comments
             const postComments = await Comment.find({ post_id })
 
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             res.json({
                 success: true,
-                post: {
-                    ...caption, media_url, likes_count, comments_count, createdAt
-                }, 
-                postAuthor: {
-                    user_id, username, profile_image_url
-                }, 
-                postLikes: {
-                    user_id
-                }, 
-                postComments: {
-                    user_id, comment, reply_to_comment_id, createdAt
-                }
+                user: postAuthor,
+                post: postById,
+                comments: postComments,
             })
-
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }
+
+    // @route [GET] /post/explore/:hashtag
+    // @desc retrieve posts by hashtag
+    // @access Public
+    async retrieveHashtagPost(req, res) {
+        const { hashtag } = req.params
+
+        try {
+            const posts = await Post.aggregate([
+                {
+                    $match: { hashtags: hashtag }
+                },
+                {
+                    $facet: {
+                        posts: [
+                            { $match: { hashtags: hashtag } },
+                            { $sort: { createdAt: -1 } },
+                            { $limit: 20 },
+                            {
+                                $project: {
+                                    _id: 1,
+                                    likes_count: 1,
+                                    comments_count: 1,
+                                    media_url: { arrayElemAt: ['$media_url', 0] },
+                                }
+                            }
+                        ],
+                        postCount: [
+                            { $match: { hashtags: hashtag } },
+                            { $count: 'count' }
+                        ]
+                    }
+                }
+            ])
+
+            return res.send(posts[0])
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
+
+    // @route [POST] /:post_id/like
+    // @desc like post
+    // @access Private
+    async likePost(req, res) {
+        const { post_id } = req.params
+
+        try {
+            // check if post exists
+            const post = await Post.findById(post_id)
+            if (!post) {
+                return res.status(404).json({ success: false, message: 'Post not found' })
+            }
+
+            // check if user already liked post
+            const existingLike = await Like.findOne({ post_id, user_id: req.userId })
+
+            if (existingLike) {
+                // unlike post
+                await Like.findByIdAndDelete(existingLike._id)
+
+                // decrement post likes count
+                await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: -1 } })
+
+                return res.json({ success: true, message: 'Unliked post !' })
+            }
+
+            // save like to db
+            const newLike = new Like({
+                post_id,
+                user_id: req.userId,
+            })
+            await newLike.save()
+
+            // increment post likes count
+            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
+
+            res.json({ success: true, message: 'Liked post !' })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
+
+    // @route [GET] /post/feed
+    // @desc retrieve user feed
+    // @access Private
+    async
 }
 
 module.exports = new PostController();
