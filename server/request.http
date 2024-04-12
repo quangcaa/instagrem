@@ -61,8 +61,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 
 ###
 POST http://localhost:1000/post/11/like
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsImlhdCI6MTcxMjkzNzEyNH0.xdvV3ZscmPAyFGTOZTrXvRpGbF_hBxJg_oz0tMgTfsU
 
 
 

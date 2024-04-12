@@ -4,7 +4,7 @@ const router = express.Router()
 const { requireAuth, optionalAuth } = require('../middlewares/auth')
 const postController = require('../controllers/PostController')
 
-router.get('/feed', requireAuth, postController.retrieveFeed)
+// router.get('/feed', requireAuth, postController.retrieveFeed)
 
 router.get('/:post_id', postController.retrievePost)
 router.get('/explore/:hashtag', optionalAuth, postController.retrieveHashtagPost)
