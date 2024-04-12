@@ -241,7 +241,6 @@ class PostController {
     // @route [GET] /post/feed
     // @desc retrieve user feed
     // @access Private
-    async
 }
 
 module.exports = new PostController();
