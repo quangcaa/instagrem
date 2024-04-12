@@ -16,7 +16,7 @@ const Comment = new Schema(
         },
     },
     {
-        timestamps: { createdAt: 'comment_time' }
+        timestamps: true,
     }
 )
 

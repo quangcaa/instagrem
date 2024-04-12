@@ -59,6 +59,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 GET http://localhost:1000/post/11
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
 
+###
+POST http://localhost:1000/post/11/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
+
+
+
 
 ###
 POST http://localhost:1000/auth/logout
@@ -72,3 +78,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
     "oldPassword": "hahaahaha",
     "newPassword": "c"
 }
+
+###
+GET http://localhost:1000/post/explore/dzco1ko2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
