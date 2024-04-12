@@ -48,12 +48,17 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
     "hashtags": "tagcc",
     "mentions": "ha"
 }
+
+
 ###
 DELETE http://localhost:1000/post/21
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
 
 
 ###
+GET http://localhost:1000/post/11
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
+
 
 ###
 POST http://localhost:1000/auth/logout

@@ -2,43 +2,6 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const AutoIncrement = require('mongoose-sequence')(mongoose)
 
-// Like Schema
-const Like = new Schema(
-    {
-        post_id: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'posts',
-            required: true,
-        },
-        user_id: { type: String, required: true },
-    },
-    {
-        timestamps: { createdAt: 'like_time' }
-    }
-)
-
-// Comment Schema
-const Comment = new Schema(
-    {
-        post_id: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'posts',
-            required: true,
-        },
-        user_id: { type: String, required: true },
-        comment: { type: String, required: true },
-        media_url: { type: String },
-        reply_to_comment_id: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'comments',
-        },
-    },
-    {
-        timestamps: { createdAt: 'comment_time' }
-    }
-)
-
-// Post Schema
 const Post = new Schema(
     {
         user_id: { type: Number},
@@ -60,7 +23,5 @@ const Post = new Schema(
 // add plugin
 Post.plugin(AutoIncrement)
 
-module.exports = mongoose.model('likes', Like)
-module.exports = mongoose.model('comments', Comment)
 module.exports = mongoose.model('posts', Post)
 
