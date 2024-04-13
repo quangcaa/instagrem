@@ -67,11 +67,6 @@ class AuthController {
             return res.status(422).send(error.details[0].message)
         }
 
-        // check if username, email and password are provided
-        if (!username || !email || !password) {
-            return res.status(400).json({ success: false, error: 'Missing username or email or password' })
-        }
-
         // hash the password
         const hashedPassword = await argon2.hash(password)
 
