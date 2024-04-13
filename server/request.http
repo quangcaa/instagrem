@@ -1,7 +1,7 @@
 GET http://localhost:1000
 
-###
-
+##############################################################################################################################################
+### login
 POST http://localhost:1000/auth/login
 Content-Type: application/json
 
@@ -10,8 +10,7 @@ Content-Type: application/json
     "password": "cc"
 }
 
-###
-
+### register 
 POST http://localhost:1000/auth/register
 Content-Type: application/json
 
@@ -21,54 +20,7 @@ Content-Type: application/json
     "password": "cc"
 }
 
-###
-
-POST http://localhost:1000/post/create
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1Nzg5MX0.VJh5jFNkRvm3vQxHimqpH_EZTf3gOOFU5UyqlMRQABk
-
-{
-    "caption": "test [put]",
-    "hashtags": "dzco1ko2",
-    "mentions": "mwahnga"
-}
-
-###
-
-GET http://localhost:1000/post
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1MDE3MX0._djjpG09p_1XjS30veovmc79HIj63DUaps0LtsCRfLk
-
-###
-PUT http://localhost:1000/post/21
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
-
-{
-    "caption": "test test cai lin",
-    "hashtags": "tagcc",
-    "mentions": "ha"
-}
-
-
-###
-DELETE http://localhost:1000/post/21
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
-
-
-###
-GET http://localhost:1000/post/11
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
-
-###
-POST http://localhost:1000/post/11/like
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsImlhdCI6MTcxMjkzNzEyNH0.xdvV3ZscmPAyFGTOZTrXvRpGbF_hBxJg_oz0tMgTfsU
-
-
-
-###
-POST http://localhost:1000/auth/logout
-
-###
+### change password
 PATCH http://localhost:1000/auth/changePassword
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
@@ -78,6 +30,67 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
     "newPassword": "c"
 }
 
-###
+### log out
+POST http://localhost:1000/auth/logout
+
+
+##############################################################################################################################################
+### post create
+POST http://localhost:1000/post/create
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE3MTI5ODE4Mjd9.cZ4BjC1vQMEo-_qDNu_-Wvij5sNk8ltkTpPmoJp0eCo
+
+{
+    "caption": "this is test",
+    "hashtags": "dzco1ko2",
+    "mentions": "mwahnga"
+}
+
+### get all post
+GET http://localhost:1000/post
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjc1MDE3MX0._djjpG09p_1XjS30veovmc79HIj63DUaps0LtsCRfLk
+
+### get 1 post
+PUT http://localhost:1000/post/11
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+
+{
+    "caption": "test test cai lin",
+    "hashtags": "tagcc",
+    "mentions": "ha"
+}
+
+### delete post
+DELETE http://localhost:1000/post/21
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjcyMzkwNn0.OsoUTsO7aPzqm6qnecLrtNMfNKIl-8C_up-rKxNpLaE
+
+### 
+GET http://localhost:1000/post/11
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjg0NTQwOH0.qad4zgSbNKNBOEY3_ph6h23kJD6F-mlY1iyg12cPFNU
+
+### like 1 post
+POST http://localhost:1000/post/11/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsImlhdCI6MTcxMjkzNzEyNH0.xdvV3ZscmPAyFGTOZTrXvRpGbF_hBxJg_oz0tMgTfsU
+
+### get all post of hashtag
 GET http://localhost:1000/post/explore/dzco1ko2
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
+
+
+##################################################################################################################################
+### get account edit
+GET http://localhost:1000/account/edit
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE3MTI5ODE4Mjd9.cZ4BjC1vQMEo-_qDNu_-Wvij5sNk8ltkTpPmoJp0eCo
+
+### udpate account edit
+PUT http://localhost:1000/account/edit
+Authorization: Bearer eyJcbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE3MTI5ODE4Mjd9.cZ4BjC1vQMEo-_qDNu_-Wvij5sNk8ltkTpPmoJp0eCo
+Content-Type: application/json
+
+{
+    "username": "bbbbbbbbbbb",
+    "email": "okkkko@gmail.com",
+    "full_name": "qqqqnt",
+    "bio": "qua sai ?"
+}

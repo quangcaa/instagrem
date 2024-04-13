@@ -58,4 +58,39 @@ const changePasswordValidator = (password) => {
     return newPassword.validate(password);
 }
 
-module.exports = { registerValidator, changePasswordValidator }
+const updateProfileValidator = (profile) => {
+    const rule = Joi.object({
+        username: Joi.string()
+            .regex(/^[a-zA-Z0-9_.]+$/)
+            .min(6)
+            .max(30)
+            .required()
+            .messages({
+                'string.pattern.base': 'Username can only contain letters, numbers, underscores, and periods',
+                'string.empty': 'Username is required',
+                'any.required': 'Username is required',
+                'string.min': 'Username must be at least {#limit} characters long',
+                'string.max': 'Username cannot be more than {#limit} characters long'
+            }),
+
+        email: Joi.string()
+            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+            .required()
+            .messages({
+                'string.email': 'Please enter a valid email address',
+                'string.empty': 'Email is required',
+                'any.required': 'Email is required',
+            }),
+
+        full_name: Joi.string()
+            .max(50),
+            
+        bio: Joi.string()
+            .max(150),
+    })
+
+    return rule.validate(profile)
+}
+
+
+module.exports = { registerValidator, changePasswordValidator, updateProfileValidator }
