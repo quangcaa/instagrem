@@ -95,3 +95,21 @@ Content-Type: application/json
     "bio": "qua sai ?"
 }
 
+### get all post of following
+GET http://localhost:1000/post/feed
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
+
+###
+POST http://localhost:1000/user/quangong/follow
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzExMzczNn0.xbcayKvVh0xzxmEj9SLNDsxKBYdjn-YkZcaycGrFcfo
+
+hesdsls
+
+###
+GET http://localhost:1000/user/hels/followers
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzExMzA1NX0.5LLSz2E-4ceD0yi9yMaRSRfjhf6FzZ27QDITGeInI3A
+
+###
+GET http://localhost:1000/user/hels/following
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzExMzA1NX0.5LLSz2E-4ceD0yi9yMaRSRfjhf6FzZ27QDITGeInI3A
+

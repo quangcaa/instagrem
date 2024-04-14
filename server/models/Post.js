@@ -6,7 +6,6 @@ const Post = new Schema(
     {
         user_id: { type: Number },
         caption: { type: String, required: true },
-        post_type: { type: String, enum: ['TEXT', 'MEDIA'], default: 'TEXT' },
         likes_count: { type: Number, default: 0 },
         comments_count: { type: Number, default: 0 },
         media_url: [{ type: String }],
