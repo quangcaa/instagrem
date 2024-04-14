@@ -2,6 +2,7 @@ const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
 const mysql_con = require('../config/db/mysql')
+const cloudinary = require('../config/storage/cloudinary')
 
 class PostController {
 
@@ -18,9 +19,25 @@ class PostController {
 
         // create post
         try {
+            let mediaUrls = []
+
+            if (req.files['image']) {
+                const images = req.files['image']
+                for (let image of images) {
+                    const imageResult = await cloudinary.uploader.upload(image.path, { folder: 'posts', resource_type: 'auto' })
+                    mediaUrls.push(imageResult.secure_url)
+                }
+            }
+
+            if (req.files['video']) {
+                const video = req.files['video'][0]
+                const videoResult = await cloudinary.uploader.upload(video.path, { folder: 'posts',resource_type: 'video' })
+                mediaUrls.push(videoResult.secure_url)
+            }
+
             const newPost = new Post({
                 caption,
-                media_url,
+                media_url: mediaUrls,
                 hashtags,
                 mentions,
                 user_id: req.userId,
@@ -243,4 +260,4 @@ class PostController {
     // @access Private
 }
 
-module.exports = new PostController();
+module.exports = new PostController()
