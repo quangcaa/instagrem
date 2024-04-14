@@ -10,11 +10,16 @@ class PostController {
     // @desc create post
     // @access Private
     async createPost(req, res) {
-        const { caption, media_url, hashtags, mentions } = req.body
+        const { caption, hashtags, mentions } = req.body
 
         // check if caption is provided
         if (!caption) {
-            return res.status(400).json({ success: false, message: 'Missing caption' })
+            return res.status(400).json({ success: false, error: 'Missing caption' })
+        }
+
+        // check if media is provided
+        if (!req.files['image'] && !req.files['video']) {
+            return res.status(400).json({ success: false, error: 'Please provide the image to upload.' })
         }
 
         // create post
@@ -31,7 +36,7 @@ class PostController {
 
             if (req.files['video']) {
                 const video = req.files['video'][0]
-                const videoResult = await cloudinary.uploader.upload(video.path, { folder: 'posts',resource_type: 'video' })
+                const videoResult = await cloudinary.uploader.upload(video.path, { folder: 'posts', resource_type: 'video' })
                 mediaUrls.push(videoResult.secure_url)
             }
 
@@ -255,9 +260,37 @@ class PostController {
         }
     }
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // @route [GET] /post/feed
     // @desc retrieve user feed
     // @access Private
+    async retrieveFeed(req, res) {
+        const user_id = req.userId
+        const offset = 0
+
+        try {
+            let followingList = []
+
+            const userFollowingQuery = `
+                                       SELECT followed_user_id
+                                       FROM followers
+                                       WHERE follower_user_id = ? 
+                                       `
+            mysql_con.query(userFollowingQuery, [user_id], (error, results) => {
+                followingList = results
+            })
+
+            const userFollowingPost = await Post.find({ 'user_id': { $in: followingList } })
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .skip(Number(offset))
+
+            res.status(200).json({ success: true, user: user_id, posts: userFollowingPost })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
 }
 
 module.exports = new PostController()
