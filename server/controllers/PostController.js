@@ -2,6 +2,7 @@ const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
 const mysql_con = require('../config/db/mysql')
+const cloudinary = require('../config/storage/cloudinary')
 
 class PostController {
 
@@ -12,15 +13,44 @@ class PostController {
         const { caption, media_url, hashtags, mentions } = req.body
 
         // check if caption is provided
-        if (!caption) {
-            return res.status(400).json({ success: false, message: 'Missing caption' })
-        }
+        // if (!caption) {
+        //     return res.status(400).json({ success: false, message: 'Missing caption' })
+        // }
 
         // create post
         try {
+            let mediaUrl
+            let mediaType
+
+            // check if image or video is uploaded
+            // if (req.files && req.files.image) {
+            //   const image = req.files.image
+
+            //   // upload image to Cloudinary
+            //   const imageResult = await cloudinary.uploader.upload(image.tempFilePath, { resource_type: "auto" })
+            //   mediaUrl = imageResult.secure_url
+            //   mediaType = 'image'
+            // } else if (req.files && req.files.video) {s
+            //   const video = req.files.video
+            //   // Upload video to Cloudinary
+            //   const videoResult = await cloudinary.uploader.upload(video.tempFilePath, { resource_type: "video" })
+            //   mediaUrl = videoResult.secure_url
+            //   mediaType = 'video'
+            // }
+
+            if (req.file) {
+                const file = req.file
+
+                // ppload file to Cloudinary
+                const result = await cloudinary.uploader.upload(file.path, { resource_type: "auto" })
+
+                mediaUrl = result.secure_url
+                mediaType = result.resource_type
+            }
+
             const newPost = new Post({
                 caption,
-                media_url,
+                media_url: [mediaUrl],
                 hashtags,
                 mentions,
                 user_id: req.userId,
@@ -243,4 +273,4 @@ class PostController {
     // @access Private
 }
 
-module.exports = new PostController();
+module.exports = new PostController()
