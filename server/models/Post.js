@@ -4,15 +4,15 @@ const AutoIncrement = require('mongoose-sequence')(mongoose)
 
 const Post = new Schema(
     {
-        user_id: { type: Number},
-        caption: { type: String },
-        post_type: { type: String, enum: ['TEXT', 'MEDIA'], default: 'TEXT'},
+        user_id: { type: Number },
+        caption: { type: String, required: true },
+        post_type: { type: String, enum: ['TEXT', 'MEDIA'], default: 'TEXT' },
         likes_count: { type: Number, default: 0 },
         comments_count: { type: Number, default: 0 },
         media_url: [{ type: String }],
         hashtags: [{ type: String }],
         mentions: [{ type: String }],
-        status: { type: String, enum: ['POSTED', 'ARCHIVED', 'DELETED'], default: 'POSTED'},
+        status: { type: String, enum: ['POSTED', 'ARCHIVED', 'DELETED'], default: 'POSTED' },
     },
     {
         _id: false,
