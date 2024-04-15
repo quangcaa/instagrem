@@ -60,6 +60,7 @@ class AuthController {
     async register(req, res) {
         // get username, email and password from req.body
         const { username, email, password } = req.body
+        const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
         // check if username, email and password are valid
         const { error } = registerValidator(req.body)
@@ -88,10 +89,10 @@ class AuthController {
 
                 // if username does not exist, insert new user into the database
                 const insertUserQuery = `
-                                        INSERT INTO users (username, email, password) 
-                                        VALUES (?, ?, ?)
+                                        INSERT INTO users (username, email, password, profile_image_url) 
+                                        VALUES (?, ?, ?, ?)
                                         `
-                mysql_con.query(insertUserQuery, [username, email, hashedPassword], (error, results) => {
+                mysql_con.query(insertUserQuery, [username, email, hashedPassword, default_avatar_url], (error, results) => {
                     if (error) {
                         console.error('Error registering user: ' + error.stack)
                         return res.status(500).json({ error: "Internal Server Error" })
