@@ -111,5 +111,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 
 ###
 GET http://localhost:1000/user/hels/following
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzExMzA1NX0.5LLSz2E-4ceD0yi9yMaRSRfjhf6FzZ27QDITGeInI3A
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjYsImlhdCI6MTcxMzExNDIwM30.UchNpMWGBie5fBnXeIOpR7XCtBewUyhKu4V2N-PhPvY
 
+###
+POST http://localhost:1000/search
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzE1NDgzMn0.3K0kDQlDTLzlCvJscpmAXxuxe5YHH9GxaOsYS4AB5cM
+Content-Type: application/json
+
+{
+    "term": "quang"
+}
