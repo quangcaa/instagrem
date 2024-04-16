@@ -3,6 +3,7 @@ const userRouter = require('./user')
 const postRouter = require('./post')
 const accountRouter = require('./account')
 const searchRouter = require('./search')
+const activityRouter = require('./activity')
 
 
 function route(app) {
@@ -11,6 +12,7 @@ function route(app) {
     app.use('/post', postRouter)
     app.use('/account', accountRouter)
     app.use('/search', searchRouter)
+    app.use('/activity', activityRouter)
 }
 
 module.exports = route

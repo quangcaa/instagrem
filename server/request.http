@@ -121,3 +121,11 @@ Content-Type: application/json
 {
     "term": "quang"
 }
+
+###
+GET http://localhost:1000/activity
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzIzNTkzMH0.u0ybeJNLmUNV8CM-_no0wQYFxYU2cUl8YbD_Bs3cUco
+
+###
+PUT http://localhost:1000/activity
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzIzNTkzMH0.u0ybeJNLmUNV8CM-_no0wQYFxYU2cUl8YbD_Bs3cUco
