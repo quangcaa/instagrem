@@ -10,7 +10,15 @@ class PostController {
     // @desc create post
     // @access Private
     async createPost(req, res) {
-        const { caption, hashtags, mentions } = req.body
+        const { caption } = req.body
+
+        // let transformation = {
+        //     width: 555,
+        //     height: 555,
+        //     crop: 'fill',
+        //     gravity: 'center',
+        //     quality: 'auto:best'
+        // }
 
         // check if caption is provided
         if (!caption) {
@@ -21,6 +29,11 @@ class PostController {
         if (!req.files['image'] && !req.files['video']) {
             return res.status(400).json({ success: false, error: 'Please provide the image to upload.' })
         }
+
+        // extract hashtags and mentions
+        const hashtags = extractHashtags(caption)
+        const mentions = extractMentions(caption)
+
 
         // create post
         try {
@@ -43,8 +56,8 @@ class PostController {
             const newPost = new Post({
                 caption,
                 media_url: mediaUrls,
-                hashtags,
-                mentions,
+                hashtags: hashtags,
+                mentions: mentions,
                 user_id: req.userId,
             })
 
@@ -291,6 +304,17 @@ class PostController {
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }
+
+}
+
+function extractHashtags(text) {
+    const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+    return text.match(hashtagRegex) || [];
+}
+
+function extractMentions(text) {
+    const mentionRegex = /@[a-zA-Z0-9_]+/g;
+    return text.match(mentionRegex) || [];
 }
 
 module.exports = new PostController()

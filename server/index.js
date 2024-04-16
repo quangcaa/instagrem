@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const session = require('express-session')
+const cookieParser = require('cookie-parser')
 const path = require('path')
 
 const route = require('./routes')
@@ -11,16 +12,11 @@ require('dotenv').config()
 const app = express()
 const PORT = process.env.PORT
 
-app.use(session({
-    secret: "secret",
-    saveUninitialized: true,
-    resave: true,
-    cookie: { maxAge: 60000 }
-}))
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors())
+app.use(cookieParser())
 
 app.use((req, res, next) => {
     console.log(req.session)

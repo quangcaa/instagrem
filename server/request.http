@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
     "username": "hels",
-    "password": "cc"
+    "password": "hahaahaha"
 }
 
 ### register 
@@ -124,7 +124,7 @@ Content-Type: application/json
 
 ###
 GET http://localhost:1000/activity
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzIzNTkzMH0.u0ybeJNLmUNV8CM-_no0wQYFxYU2cUl8YbD_Bs3cUco
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMzI4MDA3MCwiZXhwIjoxNzE0NTc2MDcwfQ.Ha1KM0tUsGtpgulStNIpQrEJ0VCOs48yb4DpFJ6Luwg
 
 ###
 PUT http://localhost:1000/activity

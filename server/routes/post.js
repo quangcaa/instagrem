@@ -1,17 +1,19 @@
 const express = require('express')
 const router = express.Router()
 
-const { requireAuth, optionalAuth } = require('../middlewares/auth')
-const upload = require('../middlewares/multer') 
+const { requireAuth } = require('../middlewares/auth')
+const upload = require('../middlewares/multer')
+const postLimit = require('../middlewares/rateLimit')
+
 const postController = require('../controllers/PostController')
 
 router.get('/feed', requireAuth, postController.retrieveFeed)
 
 router.get('/:post_id', postController.retrievePost)
-router.get('/explore/:hashtag', optionalAuth, postController.retrieveHashtagPost)
+router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
 router.post('/:post_id/like', requireAuth, postController.likePost)
 
-router.post('/create', requireAuth, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), postController.createPost)
+router.post('/create', postLimit, requireAuth, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), postController.createPost)
 router.put('/:id', requireAuth, postController.updatePost)
 router.delete('/:id', requireAuth, postController.deletePost)
 router.get('/', requireAuth, postController.getPost)

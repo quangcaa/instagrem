@@ -1,7 +1,7 @@
 const mysql_con = require('../config/db/mysql')
 const argon2 = require('argon2')
-const jwt = require('jsonwebtoken')
 const { registerValidator, changePasswordValidator } = require('../utils/validation')
+const generateTokenAndSetCookie = require('../utils/generateToken')
 require('dotenv').config()
 
 class AuthController {
@@ -23,32 +23,26 @@ class AuthController {
                                    SELECT * FROM users 
                                    WHERE username = ?
                                    `
-            mysql_con.query(checkUserQuery, [username], async (error, results) => {
-                if (error) {
-                    console.error('Error: ', error)
-                    return res.status(500).json({ error: 'Internal Server Error' })
-                }
-                if (results.length === 0) {
-                    return res.status(401).json({ success: false, error: 'Invalid username or password' })
-                }
+            const [checkUser] = await mysql_con.promise().query(checkUserQuery, [username])
+            if (!checkUser.length) {
+                return res.status(401).json({ success: false, error: 'Invalid username or password' })
+            }
 
-                // check if password is correct
-                const user = results[0]
-                const isPasswordValid = await argon2.verify(user.password, password)
+            // check if password is correct
+            const user = checkUser[0]
+            const isPasswordValid = await argon2.verify(user.password, password)
 
-                if (!isPasswordValid) {
-                    return res.status(401).json({ success: false, error: 'Invalid username or password' })
-                }
+            if (!isPasswordValid) {
+                return res.status(401).json({ success: false, error: 'Invalid username or password' })
+            }
 
-                console.log('User login with ID: ' + user.user_id)
+            console.log('User login with ID: ' + user.user_id)
 
-                // Return access token
-                const accessToken = jwt.sign({ userId: user.user_id }, process.env.ACCESS_TOKEN_SECRET)
-                res.json({ success: true, message: 'Login successful', accessToken })
-                // req.session.user = user
-            })
+            // generate token & set cookie
+            generateTokenAndSetCookie(user.user_id, res)
+            res.json({ success: true, message: 'Login successful' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error login function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -58,7 +52,6 @@ class AuthController {
     // @desc Register user
     // @access Public
     async register(req, res) {
-        // get username, email and password from req.body
         const { username, email, password } = req.body
         const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
@@ -78,34 +71,25 @@ class AuthController {
                                         FROM users 
                                         WHERE username = ?
                                         `
-            mysql_con.query(checkUsernameQuery, [username], (error, results) => {
-                if (error) {
-                    console.error('Error checking username: ' + error.stack)
-                    return res.status(500).json({ error: "Internal Server Error" })
-                }
-                if (results.length > 0) {
-                    return res.status(409).json({ suceess: false, error: "Username already exists" })
-                }
+            const [checkUsername] = await mysql_con.promise().query(checkUsernameQuery, [username])
+            if (checkUsername && checkUsername.length > 0) {
+                return res.status(409).json({ suceess: false, error: "Username already exists" })
+            }
 
-                // if username does not exist, insert new user into the database
-                const insertUserQuery = `
-                                        INSERT INTO users (username, email, password, profile_image_url) 
-                                        VALUES (?, ?, ?, ?)
-                                        `
-                mysql_con.query(insertUserQuery, [username, email, hashedPassword, default_avatar_url], (error, results) => {
-                    if (error) {
-                        console.error('Error registering user: ' + error.stack)
-                        return res.status(500).json({ error: "Internal Server Error" })
-                    }
-                    console.log('User registered with ID: ' + results.insertId)
+            // if username does not exist, insert new user into the database
+            const insertUserQuery = `
+                                    INSERT INTO users (username, email, password, profile_image_url) 
+                                    VALUES (?, ?, ?, ?)
+                                    `
+            const insertUser = await mysql_con.promise().query(insertUserQuery, [username, email, hashedPassword, default_avatar_url])
 
-                    // create access token
-                    const accessToken = jwt.sign({ userId: results.insertId }, process.env.ACCESS_TOKEN_SECRET)
-                    res.status(201).json({ success: true, message: "User registered successfully", accessToken })
-                })
-            })
+            console.log('User registered with ID: ' + insertUser[0].insertId)
+
+            // generate token & set cookie
+            generateTokenAndSetCookie(insertUser[0].insertId, res)
+            res.status(201).json({ success: true, message: "User registered successfully" })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error register function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -113,8 +97,14 @@ class AuthController {
     // @route POST /auth/logout
     // @desc Logout user
     // @access Private
-    async logout(req, res) {
-        res.json({ success: true, message: 'User logged out successfully' })
+    logout(req, res) {
+        try {
+            res.cookie('jwt', '', { maxAge: 0 })
+            res.status(200).json({ message: 'Logged out successfully' })
+        } catch (error) {
+            console.error('Error logout function in AuthController: ', error)
+            return res.status(500).json({ error: 'Internal Server Error' })
+        }
     }
 
 
@@ -124,7 +114,7 @@ class AuthController {
     async changePassword(req, res) {
         const { oldPassword, newPassword } = req.body
 
-        const userId = req.userId
+        const user_id = req.userId
 
         try {
             // get current user password
@@ -135,7 +125,7 @@ class AuthController {
                                          `
             const getUserPassword = (getUserPasswordQuery) => {
                 return new Promise((resolve, reject) => {
-                    mysql_con.query(getUserPasswordQuery, [userId], (error, results) => {
+                    mysql_con.query(getUserPasswordQuery, [user_id], (error, results) => {
                         if (error) {
                             console.log(error)
                             return res.status(500).json({ error: 'Internal Server Error' })
@@ -168,7 +158,7 @@ class AuthController {
                                            SET password = ?, updated_at = CURRENT_TIMESTAMP
                                            WHERE user_id = ?
                                            `
-            mysql_con.query(updateNewPasswordQuery, [hashedPassword, userId], (error, results) => {
+            mysql_con.query(updateNewPasswordQuery, [hashedPassword, user_id], (error, results) => {
                 if (error) {
                     console.log(error)
                     return res.status(500).json({ error: 'Internal Server Error' })
@@ -177,7 +167,7 @@ class AuthController {
                 res.json({ success: true, message: 'Password changed successfully' })
             })
         } catch (error) {
-            console.log(error)
+            console.error('Error changePassword function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
