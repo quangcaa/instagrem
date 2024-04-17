@@ -1,0 +1,24 @@
+.homepage {
+  display: flex;
+  flex-direction: row;
+}
+
+.homepage__navWraper {
+  position: relative;
+  flex: 0.25;
+}
+
+.homepage__timeline {
+  flex: 0.9;
+}
+
+.line {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba(153, 153, 153, 0.5);
+  left: 16%;
+  transform: translateX(-50%);
+  z-index: 9999;
+}
