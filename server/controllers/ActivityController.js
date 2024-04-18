@@ -29,7 +29,7 @@ class ActivityController {
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error retrieveActivity function in ActivityController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -51,7 +51,8 @@ class ActivityController {
 
             return res.status(200).json({ success: true, message: 'Read all activities ! ! !' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error readActivity function in ActivityController: ', error)
+
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
