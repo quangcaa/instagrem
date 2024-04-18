@@ -36,10 +36,12 @@ class AuthController {
                 return res.status(401).json({ success: false, error: 'Invalid username or password' })
             }
 
+            // log
             console.log('User login with ID: ' + user.user_id)
 
             // generate token & set cookie
             generateTokenAndSetCookie(user.user_id, res)
+
             res.json({ success: true, message: 'Login successful' })
         } catch (error) {
             console.error('Error login function in AuthController: ', error)
@@ -55,7 +57,7 @@ class AuthController {
         const { username, email, password } = req.body
         const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
-        // check if username, email and password are valid
+        // validate
         const { error } = registerValidator(req.body)
         if (error) {
             return res.status(422).send(error.details[0].message)
@@ -83,10 +85,12 @@ class AuthController {
                                     `
             const insertUser = await mysql_con.promise().query(insertUserQuery, [username, email, hashedPassword, default_avatar_url])
 
+            // log
             console.log('User registered with ID: ' + insertUser[0].insertId)
 
             // generate token & set cookie
             generateTokenAndSetCookie(insertUser[0].insertId, res)
+
             res.status(201).json({ success: true, message: "User registered successfully" })
         } catch (error) {
             console.error('Error register function in AuthController: ', error)
@@ -113,7 +117,6 @@ class AuthController {
     // @access Private
     async changePassword(req, res) {
         const { oldPassword, newPassword } = req.body
-
         const user_id = req.userId
 
         try {

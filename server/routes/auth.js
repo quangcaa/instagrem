@@ -6,7 +6,7 @@ const { requireAuth } = require('../middlewares/auth')
 
 router.post('/login', authController.login)
 router.post('/register', authController.register)
-router.post('/logout', requireAuth, authController.logout)
+router.post('/logout', authController.logout)
 router.patch('/changePassword', requireAuth, authController.changePassword)
 
 module.exports = router
