@@ -15,85 +15,44 @@ class UserController {
                                    SELECT * FROM users
                                    WHERE username = ?
                                    `
-            const getUserInfo = (userExistQuery) => {
-                return new Promise((resolve, reject) => {
-                    mysql_con.query(userExistQuery, [username], (error, results) => {
-                        if (error) {
-                            console.error('Error: ', error)
-                            return res.status(500).json({ success: false, message: 'Internal server error' })
-                        }
+            const [userInfo] = await mysql_con.promise().query(userExistQuery, [username])
 
-                        // check if user exists
-                        if (results.length === 0) {
-                            return res.status(400).json({ success: false, message: 'User not found' })
-                        }
-
-                        let userInfo = results[0]
-
-                        delete userInfo.email
-                        delete userInfo.password
-                        delete userInfo.signup_date
-                        delete userInfo.updated_at
-
-                        resolve(userInfo)
-                    })
-                })
-
+            // check if user exists
+            if (userInfo.length === 0) {
+                return res.status(400).json({ success: false, message: 'User not found' })
             }
-            const userInfo = await getUserInfo(userExistQuery)
 
-            // get user posts
+            delete userInfo[0].email
+            delete userInfo[0].password
+            delete userInfo[0].signup_date
+            delete userInfo[0].updated_at
+
+            // retrieve user posts
             const userPosts = await Post
                 .find({ user_id: userInfo.user_id }, 'caption media_url hashtags mentions createdAt likes_count comments_count')
                 .sort({ createdAt: -1 })
 
-            // get user followers
-            const userFollowerQuery = `
-                                       SELECT COUNT(*) as followers 
-                                       FROM followers
-                                       WHERE followed_user_id = ?
-                                       `
-            const getUserFollower = (userFollowerQuery) => {
-                return new Promise((resolve, reject) => {
-                    mysql_con.query(userFollowerQuery, [userInfo.user_id], (error, results) => {
-                        if (error) {
-                            console.error('Error: ', error)
-                            return res.status(500).json({ success: false, message: 'Internal server error' })
-                        }
+            // retrieve following and followers
+            const getFollowingQuery =   `
+                                        SELECT COUNT(*) as following 
+                                        FROM followers
+                                        WHERE follower_user_id = ?
+                                        `
+            const [following] = await mysql_con.promise().query(getFollowingQuery, [userInfo[0].user_id])
 
-                        resolve(results[0].followers)
-                    })
-                })
-            }
-            const userFollower = await getUserFollower(userFollowerQuery)
-
-            // get user following
-            const userFollowingQuery = `
-                                       SELECT COUNT(*) as followers 
-                                       FROM followers
-                                       WHERE follower_user_id = ?
-                                       `
-            const getUserFollowing = (userFollowingQuery) => {
-                return new Promise((resolve, reject) => {
-                    mysql_con.query(userFollowingQuery, [userInfo.user_id], (error, results) => {
-                        if (error) {
-                            console.error('Error: ', error)
-                            return res.status(500).json({ success: false, message: 'Internal server error' })
-                        }
-
-                        resolve(results[0].followers)
-                    })
-                })
-            }
-            const userFollowing = await getUserFollowing(userFollowingQuery)
-
+            const userFollowerQuery =   `
+                                        SELECT COUNT(*) as followers 
+                                        FROM followers
+                                        WHERE followed_user_id = ?
+                                        `
+            const [follower] = await mysql_con.promise().query(userFollowerQuery, [userInfo[0].user_id])
 
             res.json({
                 success: true,
                 user: userInfo,
                 posts: userPosts,
-                followers: userFollower,
-                following: userFollowing
+                followers: follower[0].followers,
+                following: following[0].following
             })
         } catch (error) {
             console.log(error)

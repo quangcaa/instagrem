@@ -34,7 +34,6 @@ class PostController {
         const hashtags = extractHashtags(caption)
         const mentions = extractMentions(caption)
 
-
         // create post
         try {
             let mediaUrls = []
@@ -111,7 +110,6 @@ class PostController {
     // @desc delete post
     // @access Private
     async deletePost(req, res) {
-        // delete post
         try {
             const postDeleteCondition = { _id: req.params.id, user_id: req.userId }
             const deletedPost = await Post.findOneAndDelete(postDeleteCondition)
@@ -122,20 +120,6 @@ class PostController {
             }
 
             res.json({ success: true, message: 'Deleted post !', post: deletedPost })
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({ success: false, message: 'Internal server error' })
-        }
-    }
-
-    // @route [GET] /post
-    // @desc get posts
-    // @access Private
-    async getPost(req, res) {
-        try {
-            const posts = await Post.find({ user_id: req.userId })
-
-            res.json({ success: true, posts })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -157,7 +141,7 @@ class PostController {
 
             // get post author
             const getPostAuthorQuery = `
-                                       SELECT username, profile_image_url
+                                       SELECT user_id, username, profile_image_url
                                        FROM users
                                        WHERE user_id = ?
                                        `
