@@ -22,8 +22,11 @@ class LikeController {
             const existingLike = await Like.findOne({ post_id, user_id: me })
 
             if (existingLike) {
+                // conditions 
+                const likeDeleteCondition = { _id: existingLike._id, post_id: post_id, user_id: me }
+
                 // unlike post
-                const deletedLike = await Like.findOneAndDelete(existingLike._id)
+                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition)
 
                 if (deletedLike) {
                     // decrement post likes count
@@ -42,7 +45,7 @@ class LikeController {
             await newLike.save()
 
             // increment post likes count
-            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } }, { new: true })
+            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
 
             res.json({ success: true, message: 'Liked post !' })
         } catch (error) {
@@ -61,7 +64,7 @@ class LikeController {
 
         try {
             // check if comment exists
-            const comment = await Comment.findOne({ _id: comment_id })
+            const comment = await Comment.findById(comment_id)
             if (!comment) {
                 return res.status(404).json({ success: false, message: 'Post not found' })
             }
@@ -70,8 +73,11 @@ class LikeController {
             const existingLike = await Like.findOne({ comment_id, user_id: me })
 
             if (existingLike) {
+                // conditions
+                const likeDeleteCondition = { _id: existingLike._id, comment_id, user_id: me }
+
                 // unlike comment
-                const deletedLike = await Like.findOneAndDelete(existingLike._id)
+                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition)
 
                 if (deletedLike) {
                     // decrement comment likes count

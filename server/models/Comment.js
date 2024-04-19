@@ -10,7 +10,7 @@ const Comment = new Schema(
         likes_count: { type: Number, default: 0 },
         post_id: { type: String, ref: 'posts', required: true },
         user_id: { type: String, required: true },
-        parent_id: { type: mongoose.Schema.ObjectId, ref: 'comments' },
+        parent_id: { type: String, ref: 'comments' },
     },
     {
         timestamps: true,

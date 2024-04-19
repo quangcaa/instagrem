@@ -6,6 +6,8 @@ const { requireAuth } = require('../middlewares/auth')
 const commentController = require('../controllers/CommentController')
 
 router.post('/p/:post_id', requireAuth, commentController.createComment)
-router.delete('', requireAuth, commentController.deleteComment)
+router.post('/c/:parent_id', requireAuth, commentController.createCommentReply)
+
+router.delete('/:comment_id', requireAuth, commentController.deleteComment)
 
 module.exports = router
