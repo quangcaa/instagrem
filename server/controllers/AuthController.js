@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 const argon2 = require('argon2')
 const { registerValidator, changePasswordValidator } = require('../utils/validation')
 const generateTokenAndSetCookie = require('../utils/generateToken')

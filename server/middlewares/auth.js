@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 require('dotenv').config()
 
 const requireAuth = async (req, res, next) => {
@@ -47,4 +47,4 @@ const optionalAuth = (req, res, next) => {
 }
 
 
-module.exports = { requireAuth }
+module.exports = { requireAuth, optionalAuth }

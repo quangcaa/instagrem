@@ -1,7 +1,7 @@
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 const cloudinary = require('../config/storage/cloudinary')
 
 class PostController {

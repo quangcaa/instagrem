@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 const Post = require('../models/Post')
 
 class UserController {

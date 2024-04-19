@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 const { updateProfileValidator } = require('../utils/validation')
 const cloudinary = require('../config/storage/cloudinary')
 
