@@ -42,7 +42,7 @@ class LikeController {
             await newLike.save()
 
             // increment post likes count
-            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
+            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } }, { new: true })
 
             res.json({ success: true, message: 'Liked post !' })
         } catch (error) {
@@ -61,7 +61,7 @@ class LikeController {
 
         try {
             // check if comment exists
-            const comment = await Comment.findById(comment_id)
+            const comment = await Comment.findOne({ _id: comment_id })
             if (!comment) {
                 return res.status(404).json({ success: false, message: 'Post not found' })
             }
@@ -75,7 +75,7 @@ class LikeController {
 
                 if (deletedLike) {
                     // decrement comment likes count
-                    await Post.findByIdAndUpdate(comment_id, { $inc: { likes_count: -1 } })
+                    await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: -1 } })
                     return res.json({ success: true, message: 'Unliked comment !' })
                 }
 
@@ -90,7 +90,7 @@ class LikeController {
             await newLike.save()
 
             // increment comment likes count
-            await Post.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } })
+            await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } })
 
             res.json({ success: true, message: 'Liked comment !' })
         } catch (error) {
@@ -98,7 +98,7 @@ class LikeController {
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
-    
+
 }
 
 module.exports = new LikeController()
