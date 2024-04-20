@@ -11,7 +11,6 @@ router.get('/feed', requireAuth, postController.retrieveFeed)
 
 router.get('/:post_id', postController.retrievePost)
 router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
-router.post('/:post_id/like', requireAuth, postController.likePost)
 
 router.post('/create', postLimit, requireAuth, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), postController.createPost)
 router.put('/:id', requireAuth, postController.updatePost)

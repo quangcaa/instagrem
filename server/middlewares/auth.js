@@ -19,7 +19,7 @@ const requireAuth = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'User not found' })
         }
         
-        req.userId = user[0].user_id 
+        req.user = user[0]
 
         next()
     } catch (error) {
@@ -35,7 +35,7 @@ const optionalAuth = (req, res, next) => {
     if (token) {
         try {
             const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-            req.userId = decoded.userId;
+            req.user.user_id = decoded.userId;
 
         } catch (error) {
             console.log(error)

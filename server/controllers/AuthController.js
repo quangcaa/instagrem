@@ -117,7 +117,7 @@ class AuthController {
     // @access Private
     async changePassword(req, res) {
         const { oldPassword, newPassword } = req.body
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         try {
             // get current user password

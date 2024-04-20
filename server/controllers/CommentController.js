@@ -10,7 +10,12 @@ class CommentController {
     async createComment(req, res) {
         const { post_id } = req.params
         const { comment } = req.body
-        const me = req.userId
+        const me = req.user.user_id
+
+        // check if comment is empty
+        if (!comment) {
+            return res.status(400).json({ success: false, message: 'Comment is required' })
+        }
 
         try {
             // check if post exists
@@ -34,7 +39,7 @@ class CommentController {
                 { new: true }
             )
 
-            res.json({
+            res.status(201).json({
                 success: true, message: 'Commented post !',
                 comment: newComment,
                 post: postAfter
@@ -52,7 +57,7 @@ class CommentController {
     async createCommentReply(req, res) {
         const { parent_id } = req.params
         const { comment } = req.body
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // check if comment exists
@@ -89,12 +94,43 @@ class CommentController {
     }
 
 
+    // @route [GET] /comment/c/:parent_id/reply/:offset
+    // @desc get all replies of comment
+    // @access Public
+    async retrieveCommentReplies(req, res) {
+        const { parent_id, offset = 0 } = req.params
+
+        try {
+            // check if comment exists
+            const parentComment = await Comment.findById(parent_id)
+            if (!parentComment) {
+                return res.status(404).json({ success: false, message: 'Comment not found' })
+            }
+
+            // get all replies of comment
+            const replies = await Comment.find({ parent_id })
+                .sort({ createdAt: 1 })
+                .skip(parseInt(offset))
+                .limit(10)
+
+            if( replies.length === 0 ) {
+                return res.status(404).json({ success: false, message: 'No replies found' })
+            }
+
+            return res.send({ success: true, replies })
+        } catch (error) {
+            console.error('Error retrieveCommentReplies function in CommentController: ', error)
+            return res.status(500).json({ error: 'Internal Server Error' })
+        }
+    }
+
+
     // @route [DELETE] /comment/:comment_id
     // @desc delete comment 
     // @access Private
     async deleteComment(req, res) {
         const { comment_id } = req.params
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // delete comment

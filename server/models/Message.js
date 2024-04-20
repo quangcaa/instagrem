@@ -3,11 +3,11 @@ const Schema = mongoose.Schema
 
 const Message = new Schema(
     {
-        conversation_id: { type: mongoose.Schema.ObjectId, ref: 'conversations', required: true, },
-        sender_id: { type: Number, required: true },
-        receiver_id: { type: Number, required: true },
+        conversation_id: { type: String, ref: 'conversations', required: true, },
+        sender_id: { type: String, required: true },
+        receiver_id: { type: String, required: true },
         message: { type: String, required: true },
-        reply_story_id: { type: mongoose.Schema.ObjectId, ref: 'stories', default: null }
+        reply_story_id: { type: String, ref: 'stories', default: null }
     },
     {
         timestamps: true

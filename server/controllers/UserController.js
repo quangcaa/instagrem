@@ -66,7 +66,7 @@ class UserController {
     // @access Public
     async retrieveFollowers(req, res) {
         const { username } = req.params
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // get user_id
@@ -117,7 +117,7 @@ class UserController {
     // @access Public
     async retrieveFollowing(req, res) {
         const { username } = req.params
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // get user_id
@@ -168,7 +168,7 @@ class UserController {
     // @access Private
     async followUser(req, res) {
         const { username } = req.params
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         try {
             // check if user exists
