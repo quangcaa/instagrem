@@ -7,7 +7,7 @@ class SearchController {
     // @access Private
     async search(req, res) {
         const { term } = req.body
-        const user_is_searching = req.userId
+        const user_is_searching = req.user.user_id
 
         if (!term) {
             return res.status(400).json({ message: 'Please provide search term' })

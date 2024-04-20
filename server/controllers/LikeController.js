@@ -9,7 +9,7 @@ class LikeController {
     // @access Private
     async likePost(req, res) {
         const { post_id } = req.params
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // check if post exists
@@ -60,7 +60,7 @@ class LikeController {
     // @access Private
     async likeComment(req, res) {
         const { comment_id } = req.params
-        const me = req.userId
+        const me = req.user.user_id
 
         try {
             // check if comment exists

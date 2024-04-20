@@ -8,7 +8,7 @@ class AccountController {
     // @desc get user profile
     // @access Private
     async getProfile(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         try {
             const getProfileQuery = `
@@ -31,7 +31,7 @@ class AccountController {
     // @access Private
     async updateProfile(req, res) {
         const { username, email, full_name, bio } = req.body
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         // check if user submit is valid
         const { error } = updateProfileValidator(req.body)
@@ -63,7 +63,7 @@ class AccountController {
     // @desc change avatar profile
     // @access Private
     async changeAvatar(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         if (!req.file) {
             return res.status(400).json({ error: 'Please provide image.' })
@@ -119,7 +119,7 @@ class AccountController {
     // @desc delete avatar profile
     // @access Private
     async deleteAvatar(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
         const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
         try {

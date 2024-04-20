@@ -12,6 +12,6 @@ router.get('/:username/following', requireAuth, userController.retrieveFollowing
 router.post('/:username/follow', requireAuth, userController.followUser)
 
 
-// router.post('/',)
+// router.post('/',) 
 
 module.exports = router

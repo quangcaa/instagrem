@@ -57,7 +57,7 @@ class PostController {
                 media_url: mediaUrls,
                 hashtags: hashtags,
                 mentions: mentions,
-                user_id: req.userId,
+                user_id: req.user.user_id,
             })
 
             await newPost.save()
@@ -89,7 +89,7 @@ class PostController {
                 mentions: mentions || [],
             }
 
-            const postUpdateCondition = { _id: req.params.id, user_id: req.userId }
+            const postUpdateCondition = { _id: req.params.id, user_id: req.user.user_id }
 
             updatedPost = await Post.findOneAndUpdate(postUpdateCondition, updatedPost, { new: true })
 
@@ -111,7 +111,7 @@ class PostController {
     // @access Private
     async deletePost(req, res) {
         try {
-            const postDeleteCondition = { _id: req.params.id, user_id: req.userId }
+            const postDeleteCondition = { _id: req.params.id, user_id: req.user.user_id }
             const deletedPost = await Post.findOneAndDelete(postDeleteCondition)
 
             // user not authorised 
@@ -214,55 +214,13 @@ class PostController {
         }
     }
 
-    // @route [POST] /:post_id/like
-    // @desc like post
-    // @access Private
-    async likePost(req, res) {
-        const { post_id } = req.params
-
-        try {
-            // check if post exists
-            const post = await Post.findById(post_id)
-            if (!post) {
-                return res.status(404).json({ success: false, message: 'Post not found' })
-            }
-
-            // check if user already liked post
-            const existingLike = await Like.findOne({ post_id, user_id: req.userId })
-
-            if (existingLike) {
-                // unlike post
-                await Like.findByIdAndDelete(existingLike._id)
-
-                // decrement post likes count
-                await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: -1 } })
-
-                return res.json({ success: true, message: 'Unliked post !' })
-            }
-
-            // save like to db
-            const newLike = new Like({
-                post_id,
-                user_id: req.userId,
-            })
-            await newLike.save()
-
-            // increment post likes count
-            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
-
-            res.json({ success: true, message: 'Liked post !' })
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({ success: false, message: 'Internal server error' })
-        }
-    }
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // @route [GET] /post/feed
     // @desc retrieve user feed
     // @access Private
     async retrieveFeed(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
         const offset = 0
 
         try {

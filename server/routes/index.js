@@ -6,7 +6,7 @@ const searchRouter = require('./search')
 const activityRouter = require('./activity')
 const likeRouter = require('./like')
 const commentRouter = require('./comment')
-
+const directRouter = require('./direct')
 
 function route(app) {
     app.use('/auth', authRouter)
@@ -17,6 +17,7 @@ function route(app) {
     app.use('/activity', activityRouter)
     app.use('/like', likeRouter)
     app.use('/comment', commentRouter)
+    app.use('/direct', directRouter)
 }
 
 module.exports = route
