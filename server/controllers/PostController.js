@@ -236,7 +236,7 @@ class PostController {
             })
 
             const userFollowingPost = await Post.find({ 'user_id': { $in: followingList } })
-                .sort({ createdAt: -1 })
+                .sort({ likes_count: -1, comments_count: -1, createdAt: -1 })
                 .limit(20)
                 .skip(Number(offset))
 
