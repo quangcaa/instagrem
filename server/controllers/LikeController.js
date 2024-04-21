@@ -1,6 +1,7 @@
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
+const mysql_con = require('../config/database/mysql')
 
 class LikeController {
 
@@ -43,6 +44,27 @@ class LikeController {
                 user_id: me,
             })
             await newLike.save()
+
+            // send like activity
+            // check if activity exists
+            const checkLikeQuery = `
+                                    SELECT *
+                                    FROM activities
+                                    WHERE sender_id = ? 
+                                    AND receiver_id = ? 
+                                    AND post_id = ?
+                                    AND activity_type = ?
+                                    `
+            const [checkLike] = await mysql_con.promise().query(checkLikeQuery, [me, post.user_id, post_id, 'likes'])
+
+            // if not , add activity to db
+            if (checkLike <= 0) {
+                const sendActivityQuery = `
+                                            INSERT INTO activities (sender_id, receiver_id, activity_type, post_id, activity_title)
+                                            VALUES (?,?,?,?,?)
+                                            `
+                await mysql_con.promise().query(sendActivityQuery, [me, post.user_id, 'likes', post_id, 'Liked your thread'])
+            }
 
             // increment post likes count
             await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
@@ -94,6 +116,27 @@ class LikeController {
                 user_id: me,
             })
             await newLike.save()
+
+            // send like activity
+            // check if activity exists
+            const checkLikeQuery = `
+                                    SELECT *
+                                    FROM activities
+                                    WHERE sender_id = ? 
+                                    AND receiver_id = ? 
+                                    AND comment_id = ?
+                                    AND activity_type = ?
+                                    `
+            const [checkLike] = await mysql_con.promise().query(checkLikeQuery, [me, comment.user_id, comment_id, 'likes'])
+
+            // if not , add activity to db
+            if (checkLike <= 0) {
+                const sendActivityQuery = `
+                                            INSERT INTO activities (sender_id, receiver_id, activity_type, comment_id, activity_title)
+                                            VALUES (?,?,?,?,?)
+                                            `
+                await mysql_con.promise().query(sendActivityQuery, [me, comment.user_id, 'likes', comment_id, comment.comment])
+            }
 
             // increment comment likes count
             await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } })

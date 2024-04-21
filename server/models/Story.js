@@ -15,7 +15,7 @@ const Story = new Schema(
 )
 
 // add plugin
-Story.plugin(AutoIncrement, { id: 'story_id_counter', inc_field: 'story_id' });
+Story.plugin(AutoIncrement, { id: 'story_id_counter', inc_field: 'story_id' })
 
 
 module.exports = mongoose.model('stories', Story)
