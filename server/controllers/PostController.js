@@ -69,11 +69,13 @@ class PostController {
         }
     }
 
-    // @route [PUT] /post/:id
+    // @route [PUT] /post/:post_id
     // @desc update post
     // @access Private
     async updatePost(req, res) {
+        const { post_id } = req.params
         const { caption, media_url, hashtags, mentions } = req.body
+        const user_id = req.user.user_id
 
         // check if caption is provided
         if (!caption) {
@@ -89,7 +91,7 @@ class PostController {
                 mentions: mentions || [],
             }
 
-            const postUpdateCondition = { _id: req.params.id, user_id: req.user.user_id }
+            const postUpdateCondition = { _id: post_id, user_id }
 
             updatedPost = await Post.findOneAndUpdate(postUpdateCondition, updatedPost, { new: true })
 
@@ -106,12 +108,15 @@ class PostController {
         }
     }
 
-    // @route [DELETE] /post/:id
+    // @route [DELETE] /post/:post_id
     // @desc delete post
     // @access Private
     async deletePost(req, res) {
+        const { post_id } = req.params
+        const user_id = req.user.user_id
+
         try {
-            const postDeleteCondition = { _id: req.params.id, user_id: req.user.user_id }
+            const postDeleteCondition = { _id: post_id, user_id: user_id }
             const deletedPost = await Post.findOneAndDelete(postDeleteCondition)
 
             // user not authorised 
@@ -119,7 +124,24 @@ class PostController {
                 return res.status(401).json({ success: false, message: 'Post not found or user not authorised' })
             }
 
-            res.json({ success: true, message: 'Deleted post !', post: deletedPost })
+            // delete all comment
+            const getDeleteComment = await Comment.find({ post_id })
+            const deletedComment = await Comment.deleteMany({ post_id })
+
+            // delete all like post and like comment
+            const deletedLike = await Like.deleteMany({
+                $or: [
+                    { post_id: post_id },
+                    { comment_id: { $in: getDeleteComment } }
+                ]
+            })
+
+            res.json({
+                success: true, message: 'Deleted post !',
+                post: deletedPost,
+                like: deletedLike,
+                comment: deletedComment
+            })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -216,12 +238,12 @@ class PostController {
 
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // @route [GET] /post/feed
-    // @desc retrieve user feed
+    // @route [GET] /post/following/:offset
+    // @desc retrieve user following feed
     // @access Private
-    async retrieveFeed(req, res) {
+    async retrieveFollowingFeed(req, res) {
         const user_id = req.user.user_id
-        const offset = 0
+        const { offset } = req.params
 
         try {
             let followingList = []
