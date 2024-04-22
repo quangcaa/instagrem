@@ -1,6 +1,7 @@
 const Post = require('../models/Post')
 const Like = require('../models/Like')
 const Comment = require('../models/Comment')
+const { sendReplyActivity } = require('../utils/sendActivity')
 
 class CommentController {
 
@@ -38,6 +39,9 @@ class CommentController {
                 { $inc: { comments_count: 1 } },
                 { new: true }
             )
+
+            // send reply activity
+            sendReplyActivity(req, me, post.user_id, 'replies', post._id, newComment._id, post.caption, newComment.comment)
 
             res.status(201).json({
                 success: true, message: 'Commented post !',
@@ -82,6 +86,9 @@ class CommentController {
                 { new: true }
             )
 
+            // send reply activity
+            sendReplyActivity(req, me, parentComment.user_id, 'replies', parentComment.post_id, newComment._id, parentComment.comment, newComment.comment)
+
             res.json({
                 success: true, message: 'Replied Comment !',
                 comment: newComment,
@@ -98,7 +105,7 @@ class CommentController {
     // @desc get all replies of comment
     // @access Public
     async retrieveCommentReplies(req, res) {
-        const { parent_id, offset = 0 } = req.params
+        const { parent_id, offset } = req.params
 
         try {
             // check if comment exists
@@ -113,7 +120,7 @@ class CommentController {
                 .skip(parseInt(offset))
                 .limit(10)
 
-            if( replies.length === 0 ) {
+            if (replies.length === 0) {
                 return res.status(404).json({ success: false, message: 'No replies found' })
             }
 
