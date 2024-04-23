@@ -1,8 +1,6 @@
 const mysql_con = require('../config/database/mysql')
 
-// const { createClient } = require('../config/database/redis')
-// const client = createClient()
-// const redisClient  = require('../config/database/redis')
+const { client } = require('../config/database/redis')
 
 class ActivityController {
 
@@ -12,7 +10,7 @@ class ActivityController {
     async retrieveActivity(req, res) {
         const receiver_id = req.user.user_id
 
-        // await redisClient.connect()
+
 
         try {
             // Check if the data is already cached in Redis
@@ -21,6 +19,8 @@ class ActivityController {
             //     const activities = JSON.parse(cachedData)
             //     return res.status(200).json({ success: true, activities })
             // }
+
+
 
             const getActivityQuery = `
                                         SELECT a.activity_type,
@@ -41,7 +41,7 @@ class ActivityController {
             const [activityResult] = await mysql_con.promise().query(getActivityQuery, [receiver_id])
 
             // cache the retrieved data in Redis
-            // await redisClient.set(`activity:${receiver_id}`, JSON.stringify(activityResult))
+            await client.set('test', 'test22')
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
