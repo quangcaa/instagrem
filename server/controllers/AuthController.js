@@ -42,7 +42,17 @@ class AuthController {
             // generate token & set cookie
             generateTokenAndSetCookie(user.user_id, res)
 
-            res.json({ success: true, message: 'Login successful' })
+            res.json({
+                success: true, message: 'Login successful',
+                user: {
+                    user_id: user.user_id,
+                    username: user.username,
+                    email: user.email,
+                    full_naem: user.full_name,
+                    bio: user.bio,
+                    profile_image_url: user.profile_image_url
+                }
+            })
         } catch (error) {
             console.error('Error login function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
@@ -91,7 +101,15 @@ class AuthController {
             // generate token & set cookie
             generateTokenAndSetCookie(insertUser[0].insertId, res)
 
-            res.status(201).json({ success: true, message: "User registered successfully" })
+            res.status(201).json({
+                success: true, message: "User registered successfully",
+                user: {
+                    user_id: insertUser[0].insertId,
+                    username,
+                    email,
+                    profile_image_url: default_avatar_url
+                }
+            })
         } catch (error) {
             console.error('Error register function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })

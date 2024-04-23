@@ -1,5 +1,9 @@
 const mysql_con = require('../config/database/mysql')
 
+// const { createClient } = require('../config/database/redis')
+// const client = createClient()
+// const redisClient  = require('../config/database/redis')
+
 class ActivityController {
 
     // @route [GET] /activity
@@ -8,10 +12,19 @@ class ActivityController {
     async retrieveActivity(req, res) {
         const receiver_id = req.user.user_id
 
+        // await redisClient.connect()
+
         try {
-            const getActivityQuery =    `
+            // Check if the data is already cached in Redis
+            // const cachedData = await redisClient.get(`activity:${receiver_id}`)
+            // if (cachedData) {
+            //     const activities = JSON.parse(cachedData)
+            //     return res.status(200).json({ success: true, activities })
+            // }
+
+            const getActivityQuery = `
                                         SELECT a.activity_type,
-                                               a.source_user_id,
+                                               a.receiver_id,
                                                a.post_id,
                                                activity_title,
                                                a.activity_message,
@@ -21,11 +34,14 @@ class ActivityController {
                                                u.username,
                                                u.profile_image_url
                                         FROM activities a
-                                        JOIN users u ON a.source_user_id = u.user_id
-                                        WHERE a.user_id = ?
+                                        JOIN users u ON a.receiver_id = u.user_id
+                                        WHERE a.sender_id = ?
                                         ORDER BY created_at DESC
                                         `
             const [activityResult] = await mysql_con.promise().query(getActivityQuery, [receiver_id])
+
+            // cache the retrieved data in Redis
+            // await redisClient.set(`activity:${receiver_id}`, JSON.stringify(activityResult))
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
