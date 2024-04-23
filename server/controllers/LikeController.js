@@ -50,7 +50,7 @@ class LikeController {
             await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
 
             // send like activity
-            sendLikeActivity(req, me, post.user_id, 'likes', post._id, '', post.caption, '')
+            sendLikeActivity(req, me, post.user_id, 'likes', post._id, '', 'Liked your post', post.caption)
 
             res.json({ success: true, message: 'Liked post !' })
         } catch (error) {
@@ -104,7 +104,7 @@ class LikeController {
             await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } })
 
             // send like activity
-            sendLikeActivity(req, me, comment.user_id, 'likes', '', comment._id, comment.comment, '')
+            sendLikeActivity(req, me, comment.user_id, 'likes', comment.post_id, comment._id, 'Liked your comment', comment.comment)
 
             res.json({ success: true, message: 'Liked comment !' })
         } catch (error) {
@@ -113,6 +113,63 @@ class LikeController {
         }
     }
 
+
+    // @route [GET] /like/l/:post_id
+    // @desc retrieve post likes
+    // @access Public
+    async retrievePostLike(req, res) {
+        const { post_id } = req.params
+        const me = req.user.user_id
+
+        try {
+            // check if post exist
+            const postById = await Post.findById(post_id)
+            if (!postById || postById.status === 'DELETED' || postById.status === "ARCHIVED") {
+                return res.status(404).json({ success: false, message: 'Post not found' })
+            }
+
+            // get all likes
+            const likes = await Like.find({ post_id }).sort({ createdAt: -1 })
+
+            // get user details for each like
+            const likeDetails = []
+            for (const like of likes) {
+                const user = await getUserDetails(like.user_id)
+                likeDetails.push({
+                    username: user.username,
+                    full_name: user.full_name,
+                    profile_image_url: user.profile_image_url,
+                    time: like.createdAt
+                })
+            }
+
+            res.json({ success: true, likes: likeDetails })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
+
 }
+
+
+// function for retrievePostLike
+async function getUserDetails(user_id) {
+    const getUserDetailsQuery = `
+                                SELECT username, full_name, profile_image_url
+                                FROM users
+                                WHERE user_id = ?
+                                `
+    return new Promise((resolve, reject) => {
+        mysql_con.query(getUserDetailsQuery, [user_id], (error, results) => {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(results[0])
+            }
+        })
+    })
+}
+
 
 module.exports = new LikeController()
