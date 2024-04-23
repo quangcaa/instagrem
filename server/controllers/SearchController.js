@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 
 class SearchController {
 
@@ -7,7 +7,7 @@ class SearchController {
     // @access Private
     async search(req, res) {
         const { term } = req.body
-        const user_is_searching = req.userId
+        const user_is_searching = req.user.user_id
 
         if (!term) {
             return res.status(400).json({ message: 'Please provide search term' })
@@ -43,7 +43,7 @@ class SearchController {
 
             }
         } catch (error) {
-            console.log(error)
+            console.error('Error search function in SearchController: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }

@@ -4,7 +4,9 @@ const postRouter = require('./post')
 const accountRouter = require('./account')
 const searchRouter = require('./search')
 const activityRouter = require('./activity')
-
+const likeRouter = require('./like')
+const commentRouter = require('./comment')
+const directRouter = require('./direct')
 
 function route(app) {
     app.use('/auth', authRouter)
@@ -13,6 +15,9 @@ function route(app) {
     app.use('/account', accountRouter)
     app.use('/search', searchRouter)
     app.use('/activity', activityRouter)
+    app.use('/like', likeRouter)
+    app.use('/comment', commentRouter)
+    app.use('/direct', directRouter)
 }
 
 module.exports = route

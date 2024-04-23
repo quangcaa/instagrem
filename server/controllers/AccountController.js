@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 const { updateProfileValidator } = require('../utils/validation')
 const cloudinary = require('../config/storage/cloudinary')
 
@@ -8,7 +8,7 @@ class AccountController {
     // @desc get user profile
     // @access Private
     async getProfile(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         try {
             const getProfileQuery = `
@@ -16,16 +16,11 @@ class AccountController {
                                     FROM users
                                     WHERE user_id = ?
                                     `
-            mysql_con.query(getProfileQuery, [user_id], (error, results) => {
-                if (error) {
-                    console.log(error)
-                    return res.status(500).json({ error: 'Internal Server Error' })
-                }
+            const [userProfile] = await mysql_con.promise().query(getProfileQuery, [user_id])
 
-                return res.send({ success: true, results })
-            })
+            return res.send({ success: true, profile: userProfile[0] })
         } catch (error) {
-            console.log(error)
+            console.error('Error getProfile function in AccountController: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }
@@ -36,7 +31,7 @@ class AccountController {
     // @access Private
     async updateProfile(req, res) {
         const { username, email, full_name, bio } = req.body
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         // check if user submit is valid
         const { error } = updateProfileValidator(req.body)
@@ -54,28 +49,11 @@ class AccountController {
                                         bio = ?
                                        WHERE user_id = ?
                                        `
-            mysql_con.query(updateProfileQuery, [username, email, full_name, bio, user_id], (error, results) => {
-                if (error) {
-                    console.error(error.stack)
-                    return res.status(500).json({ error: "Internal Server Error" })
-                }
+            await mysql_con.promise().query(updateProfileQuery, [username, email, full_name, bio, user_id])
 
-                const getUserQuery = `
-                                 SELECT username, email, full_name, bio, profile_image_url 
-                                 FROM users 
-                                 WHERE user_id = ?
-                                 `
-                mysql_con.query(getUserQuery, [user_id], (error, fetchResults) => {
-                    if (error) {
-                        console.error(error.stack)
-                        return res.status(500).json({ error: "Internal Server Error" })
-                    }
-
-                    return res.status(201).send({ success: true, message: 'Profile updated successfully', user: fetchResults[0] })
-                })
-            })
+            return res.status(201).send({ success: true, message: 'Profile updated successfully' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error updateProfile function in AccountController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -85,7 +63,7 @@ class AccountController {
     // @desc change avatar profile
     // @access Private
     async changeAvatar(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         if (!req.file) {
             return res.status(400).json({ error: 'Please provide image.' })
@@ -118,11 +96,11 @@ class AccountController {
             const avatarFile = avatarUpload.secure_url
 
             if (!avatarFile) {
-                return res.status(500).json({ error: 'Avatar upload failed.' });
+                return res.status(500).json({ error: 'Avatar upload failed.' })
             }
 
             // update database
-            const changeAvatarQuery =   `
+            const changeAvatarQuery = `
                                         UPDATE users
                                         SET profile_image_url = ?
                                         WHERE user_id = ?
@@ -131,7 +109,7 @@ class AccountController {
 
             return res.status(200).json({ success: true, message: 'Changed avatar' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error changeAvatar function in AccountController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -141,7 +119,7 @@ class AccountController {
     // @desc delete avatar profile
     // @access Private
     async deleteAvatar(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
         const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
         try {
@@ -154,7 +132,7 @@ class AccountController {
 
             return res.status(200).json({ success: true, message: 'Deleted avatar ! ! !' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error deleteAvatar function in AccountController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }

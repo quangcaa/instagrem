@@ -1,4 +1,4 @@
-const mysql_con = require('../config/db/mysql')
+const mysql_con = require('../config/database/mysql')
 
 class ActivityController {
 
@@ -6,10 +6,10 @@ class ActivityController {
     // @desc get user activity
     // @access Private
     async retrieveActivity(req, res) {
-        const receiver_id = req.userId
+        const receiver_id = req.user.user_id
 
         try {
-            const getActivityQuery = `
+            const getActivityQuery =    `
                                         SELECT a.activity_type,
                                                a.source_user_id,
                                                a.post_id,
@@ -29,7 +29,7 @@ class ActivityController {
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error retrieveActivity function in ActivityController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
@@ -39,7 +39,7 @@ class ActivityController {
     // @desc mark activities as read
     // @access Private
     async readActivity(req, res) {
-        const user_id = req.userId
+        const user_id = req.user.user_id
 
         try {
             const markAsReadQuery = `
@@ -51,7 +51,8 @@ class ActivityController {
 
             return res.status(200).json({ success: true, message: 'Read all activities ! ! !' })
         } catch (error) {
-            console.error('Error: ', error)
+            console.error('Error readActivity function in ActivityController: ', error)
+
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }

@@ -1,11 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const session = require("express-session");
-const cookieParser = require("cookie-parser");
-const path = require("path");
+const express = require('express')
+const cors = require('cors')
+const session = require('express-session')
+const cookieParser = require('cookie-parser')
+const { Server } = require("socket.io")
+const path = require('path')
 
-const route = require("./routes");
-const mongodb_con = require("./config/db/mongodb");
+const route = require('./routes')
+const mongodb_con = require('./config/database/mongodb')
 
 require("dotenv").config();
 

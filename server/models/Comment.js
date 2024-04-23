@@ -1,19 +1,16 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const { v4: uuidv4 } = require('uuid')
+
 const Comment = new Schema(
     {
-        post_id: {
-            type: String,
-            ref: 'posts',
-            required: true,
-        },
-        user_id: { type: String, required: true },
+        _id: { type: String, default: uuidv4 },
         comment: { type: String, required: true },
-        reply_to_comment_id: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'comments',
-        },
+        likes_count: { type: Number, default: 0 },
+        post_id: { type: String, ref: 'posts', required: true },
+        user_id: { type: String, required: true },
+        parent_id: { type: String, ref: 'comments' },
     },
     {
         timestamps: true,
