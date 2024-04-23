@@ -3,6 +3,7 @@ const Like = require('../models/Like')
 const Comment = require('../models/Comment')
 const mysql_con = require('../config/database/mysql')
 const cloudinary = require('../config/storage/cloudinary')
+const { sendMentionActivity } = require('../utils/sendActivity')
 
 class PostController {
 
@@ -11,6 +12,7 @@ class PostController {
     // @access Private
     async createPost(req, res) {
         const { caption } = req.body
+        const user_id = req.user.user_id
 
         // let transformation = {
         //     width: 555,
@@ -57,10 +59,18 @@ class PostController {
                 media_url: mediaUrls,
                 hashtags: hashtags,
                 mentions: mentions,
-                user_id: req.user.user_id,
+                user_id,
             })
 
             await newPost.save()
+
+            // add mention acitivty
+            for (let mention of mentions) {
+                const [receiver] = await mysql_con.promise().query('SELECT * FROM users WHERE username = ?', [mention.substring(1)])
+                if (receiver.length > 0 && receiver !== null) {
+                    sendMentionActivity(req, user_id, receiver[0].user_id, 'mentions', newPost._id, '', 'Mentioned you', newPost.caption)
+                }
+            }
 
             res.json({ success: true, message: 'Created post !', post: newPost })
         } catch (error) {
@@ -237,7 +247,6 @@ class PostController {
     }
 
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // @route [GET] /post/following/:offset
     // @desc retrieve user following feed
     // @access Private
@@ -271,14 +280,33 @@ class PostController {
 
 }
 
-function extractHashtags(text) {
-    const hashtagRegex = /#[a-zA-Z0-9_]+/g;
-    return text.match(hashtagRegex) || [];
+// function for createPost
+function extractHashtags(caption) {
+    const hashtags = new Set()
+
+    const regex = /#[a-zA-Z0-9_]+/g
+
+    let match
+    while ((match = regex.exec(caption)) !== null) {
+        const hashtag = match[0]// Use match[0] to get the entire matched hashtag including '#'
+        hashtags.add(hashtag)
+    }
+
+    return Array.from(hashtags)// Convert set to array
 }
 
-function extractMentions(text) {
-    const mentionRegex = /@[a-zA-Z0-9_]+/g;
-    return text.match(mentionRegex) || [];
+function extractMentions(caption) {
+    const mentions = new Set()
+
+    const regex = /@[a-zA-Z0-9_]+/g
+
+    let match
+    while ((match = regex.exec(caption)) !== null) {
+        const mention = match[0]// Use match[0] to get the entire matched mention including '@'
+        mentions.add(mention)
+    }
+
+    return Array.from(mentions)// Convert set to array
 }
 
 module.exports = new PostController()

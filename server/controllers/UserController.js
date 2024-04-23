@@ -1,5 +1,6 @@
 const mysql_con = require('../config/database/mysql')
 const Post = require('../models/Post')
+const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
 
@@ -8,6 +9,7 @@ class UserController {
     // @access Public
     async retrieveUser(req, res) {
         const { username } = req.params
+        const me = req.user.user_id
 
         try {
             // get user information
@@ -33,26 +35,35 @@ class UserController {
                 .sort({ createdAt: -1 })
 
             // retrieve following and followers
-            const getFollowingQuery =   `
+            const getFollowingQuery = `
                                         SELECT COUNT(*) as following 
                                         FROM followers
                                         WHERE follower_user_id = ?
                                         `
             const [following] = await mysql_con.promise().query(getFollowingQuery, [userInfo[0].user_id])
-
-            const userFollowerQuery =   `
+            const userFollowerQuery = `
                                         SELECT COUNT(*) as followers 
                                         FROM followers
                                         WHERE followed_user_id = ?
                                         `
             const [follower] = await mysql_con.promise().query(userFollowerQuery, [userInfo[0].user_id])
 
+            // check if the current user is following the user
+            const checkFollowedUserQuery = `
+                                           SELECT * 
+                                           FROM followers 
+                                           WHERE follower_user_id = ? 
+                                           AND followed_user_id = ?
+                                           `
+            const [followedResult] = await mysql_con.promise().query(checkFollowedUserQuery, [me, userInfo[0].user_id])
+
             res.json({
                 success: true,
                 user: userInfo,
                 posts: userPosts,
                 followers: follower[0].followers,
-                following: following[0].following
+                following: following[0].following,
+                is_follow: followedResult.length > 0
             })
         } catch (error) {
             console.log(error)
@@ -199,6 +210,10 @@ class UserController {
                                     VALUES (?, ?)
                                     `
                 await mysql_con.promise().query(followQuery, [user_id, userFollowed])
+
+                // send follow activity
+                sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
+
                 return res.status(200).json({ success: true, message: 'Followed ! ! !' })
             }
 
@@ -209,6 +224,7 @@ class UserController {
                                   AND followed_user_id = ?
                                   `
             await mysql_con.promise().query(unfollowQuery, [user_id, userFollowed])
+
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
         } catch (error) {
             console.log(error)

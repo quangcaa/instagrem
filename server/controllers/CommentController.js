@@ -41,7 +41,7 @@ class CommentController {
             )
 
             // send reply activity
-            sendReplyActivity(req, me, post.user_id, 'replies', post._id, newComment._id, post.caption, newComment.comment)
+            sendReplyActivity(req, me, post.user_id, 'replies', post._id, '', 'Replied your post', newComment.comment)
 
             res.status(201).json({
                 success: true, message: 'Commented post !',
@@ -87,7 +87,7 @@ class CommentController {
             )
 
             // send reply activity
-            sendReplyActivity(req, me, parentComment.user_id, 'replies', parentComment.post_id, newComment._id, parentComment.comment, newComment.comment)
+            sendReplyActivity(req, me, parentComment.user_id, 'replies', parentComment.post_id, newComment._id, 'Replied your comment', newComment.comment)
 
             res.json({
                 success: true, message: 'Replied Comment !',
