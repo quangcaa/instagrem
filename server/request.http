@@ -6,8 +6,8 @@ POST http://localhost:1000/auth/login
 Content-Type: application/json
 
 {
-    "username": "hels",
-    "password": "hahaahaha"
+    "username": "thaithai",
+    "password": "123456789"
 }
 
 ### register 
@@ -15,9 +15,9 @@ POST http://localhost:1000/auth/register
 Content-Type: application/json
 
 {
-    "username": "deohieu",
-    "email": "cascxcvzxv",
-    "password": "cc"
+    "username": "thaithai1",
+    "email": "cascxcvzxv@mmmmmm.com",
+    "password": "1234"
 }
 
 ### change password
