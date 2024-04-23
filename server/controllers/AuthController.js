@@ -84,7 +84,7 @@ class AuthController {
     // validate
     const { error } = registerValidator(req.body);
     if (error) {
-      return res.status(422).send(error.details[0].message);
+      return res.status(422).json({ error: error.details[0].message });
     }
 
     // hash the password
