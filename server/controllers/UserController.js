@@ -1,5 +1,8 @@
-const mysql_con = require('../config/database/mysql')
 const Post = require('../models/Post')
+
+const mysql_con = require('../config/database/mysql')
+const { client } = require('../config/database/redis')
+
 const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
@@ -12,6 +15,13 @@ class UserController {
         const me = req.user.user_id
 
         try {
+            // check if user information is cached
+            const cachedData = await client.get(`user:${username}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
+            }
+
             // get user information
             const userExistQuery = `
                                    SELECT * FROM users
@@ -30,9 +40,9 @@ class UserController {
             delete userInfo[0].updated_at
 
             // retrieve user posts
-            const userPosts = await Post
-                .find({ user_id: userInfo.user_id }, 'caption media_url hashtags mentions createdAt likes_count comments_count')
-                .sort({ createdAt: -1 })
+            // const userPosts = await Post
+            //     .find({ user_id: userInfo.user_id }, 'caption media_url hashtags mentions createdAt likes_count comments_count')
+            //     .sort({ createdAt: -1 })
 
             // retrieve following and followers
             const getFollowingQuery = `
@@ -57,14 +67,22 @@ class UserController {
                                            `
             const [followedResult] = await mysql_con.promise().query(checkFollowedUserQuery, [me, userInfo[0].user_id])
 
-            res.json({
-                success: true,
+            // cache user information for 10 minutes
+            const userInfoResult = {
                 user: userInfo,
-                posts: userPosts,
+                // posts: userPosts,
                 followers: follower[0].followers,
                 following: following[0].following,
                 is_follow: followedResult.length > 0
-            })
+            }
+
+            if (userInfoResult.user[0].user_id === me) {
+                delete userInfoResult.is_follow
+            }
+
+            await client.set(`user:${username}`, JSON.stringify(userInfoResult), { EX: 600 })
+
+            res.status(200).json({ success: true, user: userInfoResult })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })

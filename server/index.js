@@ -20,7 +20,7 @@ app.use(cors())
 app.use(cookieParser())
 
 app.use((req, res, next) => {
-    console.log(req.session)
+    // console.log(req.session)
     // console.log(req.user)
     next()
 })

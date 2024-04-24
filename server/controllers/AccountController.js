@@ -1,5 +1,7 @@
-const mysql_con = require('../config/database/mysql')
 const { updateProfileValidator } = require('../utils/validation')
+
+const mysql_con = require('../config/database/mysql')
+const { client } = require('../config/database/redis')
 const cloudinary = require('../config/storage/cloudinary')
 
 class AccountController {
@@ -11,12 +13,22 @@ class AccountController {
         const user_id = req.user.user_id
 
         try {
+            // check if the data is already cached in Redis
+            const cachedData = await client.get(`getProfile:${user_id}`)
+            if (cachedData) {
+                const profile = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', profile })
+            }
+
             const getProfileQuery = `
-                                    SELECT username, email, full_name, bio, profile_image_url
+                                    SELECT user_id, username, email, full_name, bio, profile_image_url
                                     FROM users
                                     WHERE user_id = ?
                                     `
             const [userProfile] = await mysql_con.promise().query(getProfileQuery, [user_id])
+
+            // cache data in Redis
+            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile[0]))
 
             return res.send({ success: true, profile: userProfile[0] })
         } catch (error) {
@@ -49,7 +61,10 @@ class AccountController {
                                         bio = ?
                                        WHERE user_id = ?
                                        `
-            await mysql_con.promise().query(updateProfileQuery, [username, email, full_name, bio, user_id])
+            const insertedUser = await mysql_con.promise().query(updateProfileQuery, [username, email, full_name, bio, user_id])
+
+            // cache data in Redis
+            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile[0]))
 
             return res.status(201).send({ success: true, message: 'Profile updated successfully' })
         } catch (error) {
