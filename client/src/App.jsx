@@ -4,6 +4,7 @@ import UserPage from "./pages/UserPage";
 import PostPage from "./pages/PostPage";
 import Header from "./components/Header";
 import LogoutButton from "./components/LogoutButton";
+import CreatePost from "./components/CreatePost";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import UpdateProfilePage from "./pages/UpdateProfilePage";
@@ -33,7 +34,9 @@ function App() {
         <Route path="/:username" element={<UserPage />} />
         <Route path="/:username/post/:post_id" element={<PostPage />} />
       </Routes>
+
       {user && <LogoutButton />}
+      {user && <CreatePost />}
     </Container>
   );
 }
