@@ -1,6 +1,7 @@
-const Conversation = require('../models/Conversation')
-const Message = require('../models/Message')
-const mysql_con = require('../config/database/mysql')
+const Conversation = require('../mongo_models/Conversation')
+const Message = require('../mongo_models/Message')
+
+const { sequelize, User } = require('../mysql_models')
 
 class DirectController {
 
@@ -59,15 +60,10 @@ class DirectController {
 
         try {
             // check if receiver_id exists
-            const checkUserQuery = `
-                                    SELECT *
-                                    FROM users
-                                    WHERE user_id = ?
-                                    `
-            const [checkUser] = await mysql_con.promise().query(checkUserQuery, [receiver_id])
+            const checkUser = await User.findOne({ where: { user_id: receiver_id } })
 
             if (!checkUser) {
-                return res.status(404).json({ success: false, message: 'User not found' })
+                return res.status(404).json({ success: false, error: 'User not found' })
             }
 
             // check if conversation exist , if not create one

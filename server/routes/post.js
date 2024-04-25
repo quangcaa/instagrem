@@ -8,9 +8,10 @@ const postLimit = require('../middlewares/rateLimit')
 const postController = require('../controllers/PostController')
 
 router.get('/following/:offset', requireAuth, postController.retrieveFollowingFeed)
+router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
 
 router.get('/:post_id', postController.retrievePost)
-router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
+router.get('/u/:username', postController.retrieveUserPosts)
 
 router.post('/create', postLimit, requireAuth, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), postController.createPost)
 router.put('/:post_id', requireAuth, postController.updatePost)

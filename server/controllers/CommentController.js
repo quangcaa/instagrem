@@ -1,6 +1,6 @@
-const Post = require('../models/Post')
-const Like = require('../models/Like')
-const Comment = require('../models/Comment')
+const Post = require('../mongo_models/Post')
+const Like = require('../mongo_models/Like')
+const Comment = require('../mongo_models/Comment')
 const { sendReplyActivity } = require('../utils/sendActivity')
 
 class CommentController {

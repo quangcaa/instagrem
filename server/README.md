@@ -15,7 +15,7 @@ This is backend.
 ## Getting Started
 
 1. Copy the .env.example file and create a .env file and add the connection DB and other 
-2. Run MySQL script
+2. npx sequelize-cli db:migrate
 3. npm i
 4. npm run server
 
@@ -42,3 +42,4 @@ Guidelines for contributing to the project, including information on how to subm
 ## License
 
 Information about the project's license.
+

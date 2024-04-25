@@ -1,8 +1,11 @@
-const Post = require('../models/Post')
-const Like = require('../models/Like')
-const Comment = require('../models/Comment')
-const mysql_con = require('../config/database/mysql')
+const Post = require('../mongo_models/Post')
+const Like = require('../mongo_models/Like')
+const Comment = require('../mongo_models/Comment')
+
+const { sequelize, User, Follow } = require('../mysql_models')
+
 const cloudinary = require('../config/storage/cloudinary')
+
 const { sendMentionActivity } = require('../utils/sendActivity')
 
 class PostController {
@@ -66,7 +69,7 @@ class PostController {
 
             // add mention acitivty
             for (let mention of mentions) {
-                const [receiver] = await mysql_con.promise().query('SELECT * FROM users WHERE username = ?', [mention.substring(1)])
+                const receiver = await User.findOne({ username: mention.substring(1) })
                 if (receiver.length > 0 && receiver !== null) {
                     sendMentionActivity(req, user_id, receiver[0].user_id, 'mentions', newPost._id, '', 'Mentioned you', newPost.caption)
                 }
@@ -172,26 +175,13 @@ class PostController {
             }
 
             // get post author
-            const getPostAuthorQuery = `
-                                       SELECT user_id, username, profile_image_url
-                                       FROM users
-                                       WHERE user_id = ?
-                                       `
-            const getPostAuthor = (getPostAuthorQuery) => {
-                return new Promise((resolve, reject) => {
-                    mysql_con.query(getPostAuthorQuery, [postById.user_id], (error, results) => {
-                        if (error) {
-                            reject(error)
-                        }
-
-                        resolve(results[0])
-                    })
-                })
-            }
-            const postAuthor = await getPostAuthor(getPostAuthorQuery)
+            const postAuthor = await User.findByPk(
+                postById.user_id,
+                { attributes: ['user_id', 'username', 'profile_image_url'] }
+            )
 
             // get post comments
-            const postComments = await Comment.find({ post_id })
+            const postComments = await Comment.find({ post_id }).sort({ createdAt: -1 })
 
             res.json({
                 success: true,
@@ -204,6 +194,33 @@ class PostController {
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }
+
+    // @route [GET] /post/u/:username
+    // @desc retrieve user posts
+    // @access Public
+    async retrieveUserPosts(req, res) {
+        const { username } = req.params
+
+        try {
+            const user = await User.findOne(
+                { where: { username } },
+                { attributes: ['user_id', 'username', 'profile_image_url'] }
+            )
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' })
+            }
+
+            const posts = await Post.find({ user_id: user.user_id })
+                .sort({ createdAt: -1 })
+                .select({ post_type: 0, status: 0, updatedAt: 0 })
+
+            return res.status(200).json({ success: true, user, posts })
+        } catch (error) {
+            console.error('Error retrieveUserPosts function in PostController: ', error)
+            return res.status(500).json({ error: 'Internal Server Error' })
+        }
+    }
+
 
     // @route [GET] /post/explore/:hashtag
     // @desc retrieve posts by hashtag
@@ -255,15 +272,9 @@ class PostController {
         const { offset } = req.params
 
         try {
-            let followingList = []
-
-            const userFollowingQuery = `
-                                       SELECT followed_user_id
-                                       FROM followers
-                                       WHERE follower_user_id = ? 
-                                       `
-            mysql_con.query(userFollowingQuery, [user_id], (error, results) => {
-                followingList = results
+            const followingList = await Follow.findAll({
+                where: { follower_user_id: user_id },
+                attributes: ['followed_user_id']
             })
 
             const userFollowingPost = await Post.find({ 'user_id': { $in: followingList } })
