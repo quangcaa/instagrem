@@ -5,6 +5,7 @@ const usePreviewImg = () => {
 
     const [imgUrl, setImgUrl] = useState(null);
     const showToast = useShowToast()
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file && file.type.startsWith("image/")) {
@@ -19,10 +20,32 @@ const usePreviewImg = () => {
             showToast("Invalid file type", "Please select an image file", "error")
             setImgUrl(null)
         }
-        console.log(file);
+        // console.log(file);
     };
+
+    // const handleImagesChange = (e) => {
+    //     const file = e.target.files;
+    //     if (file && file.type.startsWith("image/")) {
+    //         const reader = new FileReader();
+
+    //         reader.onloadend = () => {
+    //             setImgUrl(reader.result);
+    //         }
+
+    //         reader.readAsDataURL(file);
+    //     } else {
+    //         showToast("Invalid file type", "Please select an image file", "error")
+    //         setImgUrl(null)
+    //     }
+    //     // console.log(file);
+
+    // const handleRemoveImage = (index) => {
+    //     if (is)
+    // }
+    // };
     // console.log(imgUrl);
-    return { handleImageChange, imgUrl };
+
+    return { handleImageChange, imgUrl, setImgUrl };
 };
 
 export default usePreviewImg;

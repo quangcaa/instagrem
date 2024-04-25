@@ -19,9 +19,9 @@ import {
     useDisclosure,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import usePreviewImg from "../hooks/usePreviewImg";
+import usePreviewImg from "../hooks/usePreviewingImg";
 import { BsFillImageFill } from "react-icons/bs";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
 
@@ -52,28 +52,43 @@ const CreatePost = () => {
 
     const handleCreatePost = async () => {
         setLoading[true];
+        const selectedFile = imageRef.current.files[0];
+        if (!selectedFile) {
+            showToast("Error", "Please select an image to upload", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('caption', postText);
+        formData.append('image', selectedFile);
+
         try {
             const res = await fetch(`http://localhost:1000/post/create`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ caption: postText, media: imgUrl }),
+                credentials: "include",
+                body: formData
             })
 
             const data = await res.json();
-            if (data.error) {
+
+            if (data.success) {
+                // const newPost = data.post;
+                // console.log(newPost);
+                showToast("Success", "Post created successfully", "success");
+
+            } else {
                 showToast("Error", data.error, "error");
                 return;
             }
-            showToast("Success", "Post created successfully", "success");
+
+
             onClose();
             setPostText("");
             setImgUrl("");
+            setRemainingChar(MAX_CHAR);
         } catch (error) {
-            showToast("Error", data.error, "error");
+            showToast("Error", error, "error");
         }
-
     };
 
     return (
@@ -97,7 +112,7 @@ const CreatePost = () => {
                     <ModalBody pb={6}>
                         <FormControl>
                             <Textarea
-                                placeholder='Post content goes here..'
+                                placeholder='Post content goes here...'
                                 onChange={handleTextChange}
                                 value={postText}
                             />
@@ -126,10 +141,10 @@ const CreatePost = () => {
                                     onClick={() => {
                                         setImgUrl("");
                                     }}
-                                    bg={"gray.800"}
                                     position={"absolute"}
                                     top={2}
                                     right={2}
+                                    size="md"
                                 />
                             </Flex>
                         )}
