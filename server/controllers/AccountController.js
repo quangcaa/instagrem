@@ -1,8 +1,8 @@
-const { updateProfileValidator } = require('../utils/validation')
-
-const mysql_con = require('../config/database/mysql')
+const { sequelize, User } = require('../mysql_models')
 const { client } = require('../config/database/redis')
 const cloudinary = require('../config/storage/cloudinary')
+
+const { updateProfileValidator } = require('../utils/validation')
 
 class AccountController {
 
@@ -20,17 +20,16 @@ class AccountController {
                 return res.status(200).json({ success: true, message: 'this is cached data', profile })
             }
 
-            const getProfileQuery = `
-                                    SELECT user_id, username, email, full_name, bio, profile_image_url
-                                    FROM users
-                                    WHERE user_id = ?
-                                    `
-            const [userProfile] = await mysql_con.promise().query(getProfileQuery, [user_id])
+            // retrieve profile from db
+            const userProfile = await User.findOne(
+                { where: { user_id } },
+                { attributes: ['user_id', 'username', 'email', 'full_name', 'bio', 'profile_image_url'] }
+            )
 
             // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile[0]))
+            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile))
 
-            return res.send({ success: true, profile: userProfile[0] })
+            return res.send({ success: true, profile: userProfile })
         } catch (error) {
             console.error('Error getProfile function in AccountController: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -48,25 +47,28 @@ class AccountController {
         // check if user submit is valid
         const { error } = updateProfileValidator(req.body)
         if (error) {
-            return res.status(422).send(error.details[0].message)
+            return res.status(422).json({ error: error.details[0].message })
         }
 
         try {
-            const updateProfileQuery = `
-                                       UPDATE users
-                                       SET 
-                                        username = ?,
-                                        email = ?,
-                                        full_name = ?,
-                                        bio = ?
-                                       WHERE user_id = ?
-                                       `
-            const insertedUser = await mysql_con.promise().query(updateProfileQuery, [username, email, full_name, bio, user_id])
+            // update profile to db
+            const [updatedRows] = await User.update(
+                { username, email, full_name, bio },
+                { where: { user_id } }
+            )
+
+            // check if the profile was updated successfully
+            if (updatedRows === 0) {
+                return res.status(404).json({ success: false, error: 'User not found' })
+            }
+
+            // Get the updated user profile from the database
+            const updatedProfile = await User.findOne({ where: { user_id } })
 
             // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile[0]))
+            await client.set(`getProfile:${user_id}`, JSON.stringify(updatedProfile))
 
-            return res.status(201).send({ success: true, message: 'Profile updated successfully' })
+            return res.status(201).send({ success: true, message: 'Profile updated successfully ! ! !' })
         } catch (error) {
             console.error('Error updateProfile function in AccountController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
@@ -115,14 +117,12 @@ class AccountController {
             }
 
             // update database
-            const changeAvatarQuery = `
-                                        UPDATE users
-                                        SET profile_image_url = ?
-                                        WHERE user_id = ?
-                                        `
-            await mysql_con.promise().query(changeAvatarQuery, [avatarFile, user_id])
+            await User.update(
+                { profile_image_url: avatarFile },
+                { where: { user_id } }
+            )
 
-            return res.status(200).json({ success: true, message: 'Changed avatar' })
+            return res.status(200).json({ success: true, message: 'Changed avatar ! ! !' })
         } catch (error) {
             console.error('Error changeAvatar function in AccountController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
@@ -138,12 +138,11 @@ class AccountController {
         const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
 
         try {
-            const deleteAvatarQuery = `
-                                        UPDATE users
-                                        SET profile_image_url = ?
-                                        WHERE user_id = ?
-                                        `
-            await mysql_con.promise().query(deleteAvatarQuery, [default_avatar_url, user_id])
+            // update the database
+            await User.update(
+                { profile_image_url: default_avatar_url },
+                { where: { user_id } }
+            )
 
             return res.status(200).json({ success: true, message: 'Deleted avatar ! ! !' })
         } catch (error) {

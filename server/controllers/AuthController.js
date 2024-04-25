@@ -4,8 +4,9 @@ require('dotenv').config()
 const { registerValidator, changePasswordValidator } = require('../utils/validation')
 const generateTokenAndSetCookie = require('../utils/generateToken')
 
-const mysql_con = require('../config/database/mysql')
 const { client } = require('../config/database/redis')
+
+const { User } = require('../mysql_models')
 
 class AuthController {
 
@@ -21,18 +22,16 @@ class AuthController {
         }
 
         try {
-            // check if user exists
-            const checkUserQuery = `
-                                   SELECT * FROM users 
-                                   WHERE username = ?
-                                   `
-            const [checkUser] = await mysql_con.promise().query(checkUserQuery, [username])
-            if (!checkUser.length) {
+            // check if username already exists
+            const user = await User.findOne({
+                where: { username },
+            })
+
+            if (!user) {
                 return res.status(401).json({ success: false, error: 'Invalid username or password' })
             }
 
             // check if password is correct
-            const user = checkUser[0]
             const isPasswordValid = await argon2.verify(user.password, password)
 
             if (!isPasswordValid) {
@@ -40,9 +39,9 @@ class AuthController {
             }
 
             // delete password from user object
-            delete user.password
-            delete user.signup_date
-            delete user.updated_at
+            delete user.dataValues.password
+            delete user.dataValues.createdAt
+            delete user.dataValues.updatedAt
 
             // log
             console.log('User login with ID: ' + user.user_id)
@@ -64,7 +63,7 @@ class AuthController {
     }
 
 
-    // @route POST /auth/register
+    // @route [POST] /auth/register
     // @desc Register user
     // @access Public
     async register(req, res) {
@@ -82,36 +81,33 @@ class AuthController {
 
         try {
             // check if username already exists
-            const checkUsernameQuery = `
-                                        SELECT *
-                                        FROM users 
-                                        WHERE username = ?
-                                        `
-            const [checkUsername] = await mysql_con.promise().query(checkUsernameQuery, [username])
-            if (checkUsername && checkUsername.length > 0) {
-                return res.status(409).json({ suceess: false, error: "Username already exists" })
+            const checkUsername = await User.findOne({ where: { username } })
+
+            if (checkUsername) {
+                return res.status(409).json({ success: false, error: 'Username already exists' })
             }
 
             // if username does not exist, insert new user into the database
-            const insertUserQuery = `
-                                    INSERT INTO users (username, email, password, profile_image_url) 
-                                    VALUES (?, ?, ?, ?)
-                                    `
-            const insertUser = await mysql_con.promise().query(insertUserQuery, [username, email, hashedPassword, default_avatar_url])
+            const newUser = await User.create({
+                username,
+                email,
+                password: hashedPassword,
+                profile_image_url: default_avatar_url
+            })
 
-            // log
-            console.log('User registered with ID: ' + insertUser[0].insertId)
+            // log 
+            console.log('User registered with ID: ' + newUser.user_id)
 
             // generate token & set cookie
-            generateTokenAndSetCookie(insertUser[0].insertId, res)
+            generateTokenAndSetCookie(newUser.user_id, res)
 
             res.status(201).json({
                 success: true, message: "User registered successfully",
                 user: {
-                    user_id: insertUser[0].insertId,
-                    username,
-                    email,
-                    profile_image_url: default_avatar_url
+                    user_id: newUser.user_id,
+                    username: newUser.username,
+                    email: newUser.email,
+                    profile_image_url: newUser.profile_image_url
                 }
             })
         } catch (error) {
@@ -120,7 +116,8 @@ class AuthController {
         }
     }
 
-    // @route POST /auth/logout
+
+    // @route [POST] /auth/logout
     // @desc Logout user
     // @access Private
     logout(req, res) {
@@ -134,7 +131,7 @@ class AuthController {
     }
 
 
-    // @route PATCH /auth/changePassword
+    // @route [PATCH] /auth/changePassword
     // @desc change user account password
     // @access Private
     async changePassword(req, res) {
@@ -143,27 +140,13 @@ class AuthController {
 
         try {
             // get current user password
-            const getUserPasswordQuery = `
-                                         SELECT password
-                                         FROM users
-                                         WHERE user_id = ?
-                                         `
-            const getUserPassword = (getUserPasswordQuery) => {
-                return new Promise((resolve, reject) => {
-                    mysql_con.query(getUserPasswordQuery, [user_id], (error, results) => {
-                        if (error) {
-                            console.log(error)
-                            return res.status(500).json({ error: 'Internal Server Error' })
-                        }
-
-                        resolve(results[0].password)
-                    })
-                })
-            }
-            const userPassword = await getUserPassword(getUserPasswordQuery)
+            const user = await User.findOne({
+                where: { user_id },
+                attributes: ['password']
+            })
 
             // check if old password is correct
-            const checkOldPassword = await argon2.verify(userPassword, oldPassword)
+            const checkOldPassword = await argon2.verify(user.password, oldPassword)
             if (!checkOldPassword) {
                 return res.status(401).json({ success: false, error: 'Invalid old password' })
             }
@@ -171,26 +154,21 @@ class AuthController {
             // check if new password is valid
             const { error } = changePasswordValidator(newPassword)
             if (error) {
-                return res.status(422).send(error.details[0].message)
+                return res.status(422).json({ error: error.details[0].message })
             }
 
             // hash new password
             const hashedPassword = await argon2.hash(newPassword)
 
             // update user password
-            const updateNewPasswordQuery = `
-                                           UPDATE users
-                                           SET password = ?, updated_at = CURRENT_TIMESTAMP
-                                           WHERE user_id = ?
-                                           `
-            mysql_con.query(updateNewPasswordQuery, [hashedPassword, user_id], (error, results) => {
-                if (error) {
-                    console.log(error)
-                    return res.status(500).json({ error: 'Internal Server Error' })
-                }
-
-                res.json({ success: true, message: 'Password changed successfully' })
+            await User.update({
+                password: hashedPassword,
+                updated_at: new Date()
+            }, {
+                where: { user_id }
             })
+
+            res.json({ success: true, message: 'Password changed successfully' })
         } catch (error) {
             console.error('Error changePassword function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })

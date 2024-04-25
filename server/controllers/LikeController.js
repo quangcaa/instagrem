@@ -1,7 +1,9 @@
-const Post = require('../models/Post')
-const Like = require('../models/Like')
-const Comment = require('../models/Comment')
-const mysql_con = require('../config/database/mysql')
+const Post = require('../mongo_models/Post')
+const Like = require('../mongo_models/Like')
+const Comment = require('../mongo_models/Comment')
+
+const { sequelize, User } = require('../mysql_models')
+
 const { sendLikeActivity } = require('../utils/sendActivity')
 
 class LikeController {
@@ -17,7 +19,7 @@ class LikeController {
             // check if post exists
             const post = await Post.findById(post_id)
             if (!post) {
-                return res.status(404).json({ success: false, message: 'Post not found' })
+                return res.status(404).json({ success: false, error: 'Post not found' })
             }
 
             // check if user already liked post
@@ -52,7 +54,7 @@ class LikeController {
             // send like activity
             sendLikeActivity(req, me, post.user_id, 'likes', post._id, '', 'Liked your post', post.caption)
 
-            res.json({ success: true, message: 'Liked post !' })
+            res.json({ success: true, message: 'Liked post ! ! !' })
         } catch (error) {
             console.error('Error likePost function in LikeController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
@@ -71,7 +73,7 @@ class LikeController {
             // check if comment exists
             const comment = await Comment.findById(comment_id)
             if (!comment) {
-                return res.status(404).json({ success: false, message: 'Post not found' })
+                return res.status(404).json({ success: false, error: 'Comment not found' })
             }
 
             // check if user already liked comment
@@ -125,7 +127,7 @@ class LikeController {
             // check if post exist
             const postById = await Post.findById(post_id)
             if (!postById || postById.status === 'DELETED' || postById.status === "ARCHIVED") {
-                return res.status(404).json({ success: false, message: 'Post not found' })
+                return res.status(404).json({ success: false, error: 'Post not found' })
             }
 
             // get all likes
@@ -134,7 +136,11 @@ class LikeController {
             // get user details for each like
             const likeDetails = []
             for (const like of likes) {
-                const user = await getUserDetails(like.user_id)
+                const user = await User.findOne(
+                    { where: { user_id: like.user_id } },
+                    { attributes: ['username', 'full_name', 'profile_image_url'] }
+                )
+
                 likeDetails.push({
                     username: user.username,
                     full_name: user.full_name,
@@ -151,25 +157,5 @@ class LikeController {
     }
 
 }
-
-
-// function for retrievePostLike
-async function getUserDetails(user_id) {
-    const getUserDetailsQuery = `
-                                SELECT username, full_name, profile_image_url
-                                FROM users
-                                WHERE user_id = ?
-                                `
-    return new Promise((resolve, reject) => {
-        mysql_con.query(getUserDetailsQuery, [user_id], (error, results) => {
-            if (error) {
-                reject(error)
-            } else {
-                resolve(results[0])
-            }
-        })
-    })
-}
-
 
 module.exports = new LikeController()
