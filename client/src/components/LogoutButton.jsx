@@ -3,6 +3,7 @@ import { useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
 import authScreenAtom from "../atoms/authAtom";
+import { FiLogOut } from "react-icons/fi";
 
 const LogoutButton = () => {
   const setUser = useSetRecoilState(userAtom);
@@ -12,6 +13,7 @@ const LogoutButton = () => {
     try {
       const res = await fetch("http://localhost:1000/auth/logout", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
@@ -38,7 +40,7 @@ const LogoutButton = () => {
       size={"sm"}
       onClick={handleLogout}
     >
-      Log out
+      <FiLogOut size={20} />
     </Button>
   );
 };
