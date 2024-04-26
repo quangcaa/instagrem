@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    console.log(req.session)
+    // console.log(req.session)
     // console.log(req.user)
     next()
 })

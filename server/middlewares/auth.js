@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
-const mysql_con = require('../config/database/mysql')
 require('dotenv').config()
+
+const { User } = require('../mysql_models')
 
 const requireAuth = async (req, res, next) => {
     try {
@@ -14,12 +15,16 @@ const requireAuth = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Unauthorized - Invalid Token' })
         }
 
-        const [user] = await mysql_con.promise().query('SELECT user_id, username, email, full_name, bio, profile_image_url FROM users WHERE user_id = ?', [decoded.userId])
-        if(!user) {
+        const user = await User.findOne({
+            where: { user_id: decoded.userId },
+            attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
+        })
+
+        if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' })
         }
-        
-        req.user = user[0]
+
+        req.user = user
 
         next()
     } catch (error) {

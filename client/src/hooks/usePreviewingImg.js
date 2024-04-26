@@ -1,50 +1,37 @@
 import { useState } from "react";
 import useShowToast from "./useShowToast";
 
-const usePreviewImg = () => {
+const MAX_IMAGES = 5;
 
-    const [imgUrl, setImgUrl] = useState(null);
-    const showToast = useShowToast()
+const usePreviewImg = () => {
+    const [imgUrl, setImgUrl] = useState([]);
+    const showToast = useShowToast();
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith("image/")) {
-            const reader = new FileReader();
+        const selectedFiles = e.target.files;
 
-            reader.onloadend = () => {
-                setImgUrl(reader.result);
+        if (!selectedFiles.length) return;
+
+        const validImages = [];
+        for (let i = 0; i < selectedFiles.length && i < MAX_IMAGES; i++) {
+            const file = selectedFiles[i];
+            if (file && file.type.startsWith("image/")) {
+                const reader = new FileReader();
+
+                reader.onloadend = () => {
+                    validImages.push(reader.result);
+                    if (validImages.length === selectedFiles.length) {
+                        setImgUrl(validImages);
+                    }
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                showToast("Invalid file type", "Please select an image file", "error");
             }
-
-            reader.readAsDataURL(file);
-        } else {
-            showToast("Invalid file type", "Please select an image file", "error")
-            setImgUrl(null)
         }
-        // console.log(file);
     };
-
-    // const handleImagesChange = (e) => {
-    //     const file = e.target.files;
-    //     if (file && file.type.startsWith("image/")) {
-    //         const reader = new FileReader();
-
-    //         reader.onloadend = () => {
-    //             setImgUrl(reader.result);
-    //         }
-
-    //         reader.readAsDataURL(file);
-    //     } else {
-    //         showToast("Invalid file type", "Please select an image file", "error")
-    //         setImgUrl(null)
-    //     }
-    //     // console.log(file);
-
-    // const handleRemoveImage = (index) => {
-    //     if (is)
-    // }
-    // };
     // console.log(imgUrl);
-
     return { handleImageChange, imgUrl, setImgUrl };
 };
 

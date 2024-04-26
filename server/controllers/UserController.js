@@ -1,5 +1,7 @@
-const mysql_con = require('../config/database/mysql')
-const Post = require('../models/Post')
+const { sequelize, User, Follow } = require('../mysql_models')
+
+const { client } = require('../config/database/redis')
+
 const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
@@ -12,59 +14,59 @@ class UserController {
         const me = req.user.user_id
 
         try {
-            // get user information
-            const userExistQuery = `
-                                   SELECT * FROM users
-                                   WHERE username = ?
-                                   `
-            const [userInfo] = await mysql_con.promise().query(userExistQuery, [username])
-
-            // check if user exists
-            if (userInfo.length === 0) {
-                return res.status(400).json({ success: false, message: 'User not found' })
+            // check if user information is cached
+            const cachedData = await client.get(`user:${username}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
-            delete userInfo[0].email
-            delete userInfo[0].password
-            delete userInfo[0].signup_date
-            delete userInfo[0].updated_at
+            // check if user exists
+            const checkUser = await User.findOne(
+                { where: { username } },
+                { attributes: ['user_id'] }
+            )
 
-            // retrieve user posts
-            const userPosts = await Post
-                .find({ user_id: userInfo.user_id }, 'caption media_url hashtags mentions createdAt likes_count comments_count')
-                .sort({ createdAt: -1 })
+            if (!checkUser) {
+                return res.status(400).json({ success: false, error: 'User not found' })
+            }
 
-            // retrieve following and followers
-            const getFollowingQuery = `
-                                        SELECT COUNT(*) as following 
-                                        FROM followers
-                                        WHERE follower_user_id = ?
-                                        `
-            const [following] = await mysql_con.promise().query(getFollowingQuery, [userInfo[0].user_id])
-            const userFollowerQuery = `
-                                        SELECT COUNT(*) as followers 
-                                        FROM followers
-                                        WHERE followed_user_id = ?
-                                        `
-            const [follower] = await mysql_con.promise().query(userFollowerQuery, [userInfo[0].user_id])
+            // retrieve user information
+            let userInfo = await sequelize.query(
+                `
+                SELECT 
+                    u.user_id,
+                    u.username,
+                    u.full_name,
+                    u.bio,
+                    u.profile_image_url,
+                    (SELECT COUNT(*) FROM follows WHERE follower_user_id = u.user_id) AS following,
+                    (SELECT COUNT(*) FROM follows WHERE followed_user_id = u.user_id) AS followers,
+                    EXISTS (
+                        SELECT 1 
+                        FROM follows 
+                        WHERE follower_user_id = ? 
+                        AND followed_user_id = ?
+                    ) AS isFollowing
+                FROM users u
+                WHERE u.username = ?
+                `
+                , {
+                    replacements: [me, checkUser.user_id, username],
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
 
-            // check if the current user is following the user
-            const checkFollowedUserQuery = `
-                                           SELECT * 
-                                           FROM followers 
-                                           WHERE follower_user_id = ? 
-                                           AND followed_user_id = ?
-                                           `
-            const [followedResult] = await mysql_con.promise().query(checkFollowedUserQuery, [me, userInfo[0].user_id])
+            userInfo = userInfo[0]
 
-            res.json({
-                success: true,
-                user: userInfo,
-                posts: userPosts,
-                followers: follower[0].followers,
-                following: following[0].following,
-                is_follow: followedResult.length > 0
-            })
+            if (String(userInfo.user_id) === String(me)) {
+                delete userInfo.isFollowing
+            }
+
+            // cache user information for 10 minutes
+            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 300 })
+
+            res.status(200).json({ success: true, user: userInfo })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -81,41 +83,44 @@ class UserController {
 
         try {
             // get user_id
-            const getUserIdQuery = `
-                                   SELECT user_id 
-                                   FROM users 
-                                   WHERE username = ?
-                                   `
-            const [userResults] = await mysql_con.promise().query(getUserIdQuery, [username])
+            const userResults = await User.findOne({ username }, 'user_id')
+
             if (!userResults || userResults.length === 0) {
-                return res.status(400).json({ success: false, message: 'User not found' })
+                return res.status(400).json({ success: false, error: 'User not found' })
             }
 
-            const userFollowerQuery = `
-                                        SELECT 
-                                            u.user_id,
-                                            u.profile_image_url,
-                                            u.username,
-                                            u.full_name,
-                                            CASE 
-                                                WHEN EXISTS (
-                                                    SELECT 1 
-                                                    FROM followers f2 
-                                                    WHERE f2.follower_user_id = ? 
-                                                    AND f2.followed_user_id = u.user_id
-                                                ) THEN 1
-                                                ELSE 0
-                                            END AS is_follow
-                                        FROM followers f
-                                        JOIN users u ON f.follower_user_id = u.user_id
-                                        WHERE f.followed_user_id = ?
-                                        `
-            const [followerResults] = await mysql_con.promise().query(userFollowerQuery, [me, userResults[0].user_id])
+            // get followers
+            const followerResults = await sequelize.query(
+                `
+                SELECT 
+                    u.user_id,
+                    u.username,
+                    u.full_name,
+                    u.profile_image_url,
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 
+                            FROM follows f2 
+                            WHERE f2.follower_user_id = ? 
+                            AND f2.followed_user_id = u.user_id
+                        ) THEN 1
+                        ELSE 0
+                    END AS isFollowing
+                FROM follows f
+                JOIN users u ON f.follower_user_id = u.user_id
+                WHERE f.followed_user_id = ?
+                `
+                , {
+                    replacements: [me, userResults.user_id],
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+
             if (followerResults.length === 0) {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
-            } else {
-                return res.status(200).json({ success: true, Follower: followerResults })
             }
+
+            return res.status(200).json({ success: true, Follower: followerResults })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -132,41 +137,44 @@ class UserController {
 
         try {
             // get user_id
-            const getUserIdQuery = `
-                                   SELECT user_id 
-                                   FROM users 
-                                   WHERE username = ?
-                                   `
-            const [userResults] = await mysql_con.promise().query(getUserIdQuery, [username])
+            const userResults = await User.findOne({ username }, 'user_id')
+
             if (!userResults || userResults.length === 0) {
-                return res.status(400).json({ success: false, message: 'User not found' })
+                return res.status(400).json({ success: false, error: 'User not found' })
             }
 
-            const userFollowingQuery = `
-                                        SELECT 
-                                            u.user_id,
-                                            u.profile_image_url,
-                                            u.username,
-                                            u.full_name,
-                                            CASE 
-                                                WHEN EXISTS (
-                                                    SELECT 1 
-                                                    FROM followers f2 
-                                                    WHERE f2.follower_user_id = ? 
-                                                    AND f2.followed_user_id = u.user_id
-                                                ) THEN 1
-                                                ELSE 0
-                                            END AS is_follow
-                                        FROM followers f
-                                        JOIN users u ON f.followed_user_id = u.user_id
-                                        WHERE f.follower_user_id = ?
-                                        `
-            const [followingResults] = await mysql_con.promise().query(userFollowingQuery, [me, userResults[0].user_id])
+            // get following
+            const followingResults = await sequelize.query(
+                `
+                SELECT 
+                    u.user_id,
+                    u.profile_image_url,
+                    u.username,
+                    u.full_name,
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 
+                            FROM follows f2 
+                            WHERE f2.follower_user_id = ? 
+                            AND f2.followed_user_id = u.user_id
+                        ) THEN 1
+                        ELSE 0
+                    END AS isFollowing
+                FROM follows f
+                JOIN users u ON f.followed_user_id = u.user_id
+                WHERE f.follower_user_id = ?
+                `
+                , {
+                    replacements: [me, userResults.user_id],
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+
             if (followingResults.length === 0) {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
-            } else {
-                return res.status(200).json({ success: true, Following: followingResults })
             }
+
+            return res.status(200).json({ success: true, Following: followingResults })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -183,33 +191,32 @@ class UserController {
 
         try {
             // check if user exists
-            const checkUserQuery = `
-                                   SELECT * 
-                                   FROM users 
-                                   WHERE username = ?
-                                   `
-            const [userResults] = await mysql_con.promise().query(checkUserQuery, [username])
-            if (!userResults || userResults.length === 0) {
-                return res.status(400).json({ success: false, message: 'User not found' })
+            const userResults = await User.findOne(
+                { where: { username } },
+                { attributes: ['user_id'] }
+            )
+
+            if (!userResults) {
+                return res.status(400).json({ success: false, error: 'User not found' })
             }
 
-            const userFollowed = userResults[0].user_id
+            if (userResults.user_id === user_id) {
+                return res.status(400).json({ success: false, error: 'Cannot follow yourself' })
+            }
+
+            const userFollowed = userResults.user_id
 
             // check if already followed
-            const checkFollowedUserQuery = `
-                                           SELECT * 
-                                           FROM followers 
-                                           WHERE follower_user_id = ? 
-                                           AND followed_user_id = ?
-                                           `
-            const [followedResult] = await mysql_con.promise().query(checkFollowedUserQuery, [user_id, userFollowed])
-            if (!followedResult || followedResult.length === 0) {
+            const checkFollowed = await Follow.findOne(
+                { where: { follower_user_id: user_id, followed_user_id: userFollowed } }
+            )
+
+            if (!checkFollowed) {
                 // follow
-                const followQuery = `
-                                    INSERT INTO followers (follower_user_id, followed_user_id) 
-                                    VALUES (?, ?)
-                                    `
-                await mysql_con.promise().query(followQuery, [user_id, userFollowed])
+                await Follow.create({
+                    follower_user_id: user_id,
+                    followed_user_id: userFollowed
+                })
 
                 // send follow activity
                 sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
@@ -218,12 +225,14 @@ class UserController {
             }
 
             // if followed, unfollow
-            const unfollowQuery = `
-                                  DELETE FROM followers 
-                                  WHERE follower_user_id = ? 
-                                  AND followed_user_id = ?
-                                  `
-            await mysql_con.promise().query(unfollowQuery, [user_id, userFollowed])
+            await Follow.destroy(
+                {
+                    where: {
+                        follower_user_id: user_id,
+                        followed_user_id: userFollowed
+                    }
+                }
+            )
 
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
         } catch (error) {

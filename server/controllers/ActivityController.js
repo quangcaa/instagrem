@@ -1,8 +1,7 @@
-const mysql_con = require('../config/database/mysql')
+const { Query } = require('mongoose')
+const { client } = require('../config/database/redis')
 
-// const { createClient } = require('../config/database/redis')
-// const client = createClient()
-// const redisClient  = require('../config/database/redis')
+const { sequelize, User, Activity } = require('../mysql_models')
 
 class ActivityController {
 
@@ -12,36 +11,42 @@ class ActivityController {
     async retrieveActivity(req, res) {
         const receiver_id = req.user.user_id
 
-        // await redisClient.connect()
-
         try {
-            // Check if the data is already cached in Redis
-            // const cachedData = await redisClient.get(`activity:${receiver_id}`)
-            // if (cachedData) {
-            //     const activities = JSON.parse(cachedData)
-            //     return res.status(200).json({ success: true, activities })
-            // }
+            // check if the data is already cached in Redis
+            const cachedData = await client.get(`retrieveActivity:${receiver_id}`)
+            if (cachedData) {
+                const activities = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', activities })
+            }
 
-            const getActivityQuery = `
-                                        SELECT a.activity_type,
-                                               a.receiver_id,
-                                               a.post_id,
-                                               activity_title,
-                                               a.activity_message,
-                                               a.is_read,
-                                               a.created_at,
-                                               u.user_id,
-                                               u.username,
-                                               u.profile_image_url
-                                        FROM activities a
-                                        JOIN users u ON a.receiver_id = u.user_id
-                                        WHERE a.sender_id = ?
-                                        ORDER BY created_at DESC
-                                        `
-            const [activityResult] = await mysql_con.promise().query(getActivityQuery, [receiver_id])
+            // retrieve activity from db
+            const activityResult = await sequelize.query(
+                `  
+                SELECT 
+                    a.activity_type,
+                    a.sender_id,
+                    a.receiver_id,
+                    a.post_id,
+                    activity_title,
+                    a.activity_message,
+                    a.is_read,
+                    a.createdAt,
+                    u.user_id,
+                    u.username,
+                    u.profile_image_url
+                FROM activities a
+                JOIN users u ON a.sender_id = u.user_id
+                WHERE a.receiver_id = ?
+                ORDER BY createdAt DESC
+                `,
+                {
+                    replacements: [receiver_id],
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
 
-            // cache the retrieved data in Redis
-            // await redisClient.set(`activity:${receiver_id}`, JSON.stringify(activityResult))
+            // cache data in Redis
+            await client.set(`retrieveActivity:${receiver_id}`, JSON.stringify(activityResult))
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
@@ -58,12 +63,14 @@ class ActivityController {
         const user_id = req.user.user_id
 
         try {
-            const markAsReadQuery = `
-                                    UPDATE activities
-                                    SET is_read = 1
-                                    WHERE user_id = ?
-                                    `
-            await mysql_con.promise().query(markAsReadQuery, [user_id])
+            // mark all activities as read
+            await Activity.update(
+                { is_read: true },
+                { where: { receiver_id: user_id } }
+            )
+
+            // set new cache for activities
+            // await client.set(`retrieveActivity:${user_id}`, JSON.stringify([]))
 
             return res.status(200).json({ success: true, message: 'Read all activities ! ! !' })
         } catch (error) {

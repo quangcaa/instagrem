@@ -26,6 +26,7 @@ import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
 
 const MAX_CHAR = 500;
+const MAX_IMAGES = 5;
 
 const CreatePost = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -52,15 +53,26 @@ const CreatePost = () => {
 
     const handleCreatePost = async () => {
         setLoading[true];
-        const selectedFile = imageRef.current.files[0];
-        if (!selectedFile) {
-            showToast("Error", "Please select an image to upload", "error");
+        const selectedFiles = imageRef.current.files;
+
+        if (!selectedFiles.length) {
+            showToast("Error", "Please select image(s) to upload", "error");
+            setLoading(false);
             return;
         }
 
         const formData = new FormData();
         formData.append('caption', postText);
-        formData.append('image', selectedFile);
+
+        for (let i = 0; i < selectedFiles.length && i < MAX_IMAGES; i++) {
+            const file = selectedFiles[i];
+            if (file && file.type.startsWith("image/")) {
+                formData.append(`image`, file); // Assuming backend can handle multiple images
+            }
+        }
+
+        // formData.append('image', selectedFiles);
+
 
         try {
             const res = await fetch(`http://localhost:1000/post/create`, {
@@ -81,12 +93,12 @@ const CreatePost = () => {
                 return;
             }
 
-
             onClose();
             setPostText("");
-            setImgUrl("");
+            setImgUrl([]);
             setRemainingChar(MAX_CHAR);
         } catch (error) {
+            console.error("Error creating post:", error);
             showToast("Error", error, "error");
         }
     };
@@ -122,6 +134,7 @@ const CreatePost = () => {
 
                             <Input
                                 type="file"
+                                multiple
                                 hidden
                                 ref={imageRef}
                                 onChange={handleImageChange}
@@ -134,12 +147,22 @@ const CreatePost = () => {
                             />
                         </FormControl>
 
-                        {imgUrl && (
-                            <Flex mt={5} w={"full"} position={"relative"}>
-                                <Image src={imgUrl} alt='Selected img' />
+                        {imgUrl.length > 0 && ( // Display previews only if images are selected
+                            <Flex mt={5} w={"full"} position={"relative"} flexWrap={"wrap"}>
+                                {imgUrl.map((imageUrl, index) => ( // Loop through each image URL
+                                    <Image
+                                        key={index}
+                                        src={imageUrl}
+                                        alt={`Selected Image ${index + 1}`}
+                                        mr={2}
+                                        maxWidth="100%" // Ensure images don't overflow the modal width
+                                        maxHeight="200px" // Set a maximum height for previews (adjust as needed)
+                                        objectFit="cover" // Crop images to fit within the container
+                                    /> // Add unique keys and spacing
+                                ))}
                                 <CloseButton
                                     onClick={() => {
-                                        setImgUrl("");
+                                        setImgUrl([])
                                     }}
                                     position={"absolute"}
                                     top={2}
@@ -148,7 +171,6 @@ const CreatePost = () => {
                                 />
                             </Flex>
                         )}
-
 
                     </ModalBody>
 
