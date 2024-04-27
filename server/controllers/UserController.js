@@ -64,7 +64,7 @@ class UserController {
             }
 
             // cache user information for 10 minutes
-            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 300 })
+            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 60 })
 
             res.status(200).json({ success: true, user: userInfo })
         } catch (error) {

@@ -50,7 +50,7 @@ class AuthController {
             generateTokenAndSetCookie(user.user_id, res)
 
             // cache user data in Redis
-            await client.set(`getProfile:${user.user_id}`, JSON.stringify(user))
+            await client.set(`getProfile:${user.user_id}`, JSON.stringify(user), { EX: 60 })
 
             res.json({
                 success: true, message: 'Login successful',
