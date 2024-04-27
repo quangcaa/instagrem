@@ -67,96 +67,124 @@ const Notification = ({ activity }) => {
             case "follows":
                 return (
                     <>
-                        <img
-                            src={activity.profile_image_url}
-                            alt={`${activity.username}'s profile picture`}
-                            className="profile-image"
-                            style={{ width: '44px', height: '44px' }} // Inline styles
-                        />
+                        <a href={`/${activity.username}`}>
+                            <img
+                                src={activity.profile_image_url}
+                                alt={`${activity.username}'s profile picture`}
+                                className="profile-image"
+                                style={{ width: '44px', height: '44px' }} // Inline styles
+                            />
+                        </a>
                         <p>
-                            <span className="username bold">{activity.username}</span> started following you.
-                            <span className='time-string'>{timeString}</span>
+                            <a href={`/${activity.username}`}>
+                                <span className="username bold">{activity.username}</span> started following you.
+                            </a>
+                            <span className="time-string"
+                                style={{ fontSize: '0.8em', color: 'gray' }}>
+                                {timeString}
+                            </span>
                         </p>
                     </>
                 );
             case "likes":
                 return (
                     <>
-                        <img
-                            src={activity.profile_image_url}
-                            alt={`${activity.username}'s profile picture`}
-                            className="profile-image"
-                            style={{ width: '44px', height: '44px' }} // Inline styles
+                        <a href={`/${activity.username}`}>
+                            <img
+                                src={activity.profile_image_url}
+                                alt={`${activity.username}'s profile picture`}
+                                className="profile-image"
+                                style={{ width: '44px', height: '44px' }} // Inline styles
 
-                        />
+                            />
+                        </a>
+
                         <>
-                            <span className="username bold">{activity.username}</span> liked on your post:
-                            <p>"{activity.activity_message}" </p>
-                            <span className='time-string'>{timeString}</span>
+                            <a href={`/${activity.username}`}>
+                                <span className="username bold">{activity.username}</span> liked on your post:
+                                <p>"{activity.activity_message}".</p>
+                            </a>
+                            <span className="time-string"
+                                style={{ fontSize: '0.8em', color: 'gray' }}
+                            >{timeString}</span>
                         </>
-
-
-
                     </>
                 );
             case "replies":
                 return (
                     <>
-                        <img
-                            src={activity.profile_image_url}
-                            alt={`${activity.username}'s profile picture`}
-                            className="profile-image"
-                            style={{ width: '44px', height: '44px' }} // Inline styles
+                        <a href={`/${activity.username}`}>
+                            <img
+                                src={activity.profile_image_url}
+                                alt={`${activity.username}'s profile picture`}
+                                className="profile-image"
+                                style={{ width: '44px', height: '44px' }} // Inline styles
 
-                        />
+                            />
+                        </a>
+
                         <>
-                            <span className="username bold">{activity.username}</span> commented on your post:
-                            <p>"{activity.activity_message}" </p>
-                            <span className='time-string'>{timeString}</span>
+                            <a href={`/${activity.username}`}>
+                                <span className="username bold">{activity.username}</span> commented on your post:
+                                <p>"{activity.activity_message}".</p>
+                            </a>
+                            <span className="time-string"
+                                style={{ fontSize: '0.8em', color: 'gray' }}
+                            >{timeString}</span>
                         </>
-
-
                     </>
                 );
             case "mentions":
                 return (
                     <>
-                        <img
-                            src={activity.profile_image_url}
-                            alt={`${activity.username}'s profile picture`}
-                            className="profile-image"
-                            style={{ width: '44px', height: '44px' }} // Inline styles
+                        <a href={`/${activity.username}`}>
+                            <img
+                                src={activity.profile_image_url}
+                                alt={`${activity.username}'s profile picture`}
+                                className="profile-image"
+                                style={{ width: '44px', height: '44px' }} // Inline styles
 
-                        />
+                            />
+                        </a>
+
                         <>
-                            <span className="username bold">{activity.username}</span> mentioned you on their post:
-                            <p>"{activity.activity_message}" </p>
-                            <span className='time-string'>{timeString}</span>
+                            <a href={`/${activity.username}`}>
+                                <span className="username bold">{activity.username}</span> mentioned you on their post:
+                                <p>"{activity.activity_message}".</p>
+                            </a>
+                            <span className="time-string"
+                                style={{ fontSize: '0.8em', color: 'gray' }}
+                            >{timeString}</span>
                         </>
-
-
                     </>
                 );
             case "reposts":
                 return (
                     <>
-                        <img
-                            src={activity.profile_image_url}
-                            alt={`${activity.username}'s profile picture`}
-                            className="profile-image"
-                            style={{ width: '44px', height: '44px' }} // Inline styles
+                        <a href={`/${activity.username}`}>
+                            <img
+                                src={activity.profile_image_url}
+                                alt={`${activity.username}'s profile picture`}
+                                className="profile-image"
+                                style={{ width: '44px', height: '44px' }} // Inline styles
 
-                        />
+                            />
+                        </a>
+
                         <>
-                            <span className="username bold">{activity.username}</span> reposted your post:
-                            <p>"{activity.activity_message}" </p>
-                            <span className='time-string'>{timeString}</span>
+                            <a href={`/${activity.username}`}>
+                                <span className="username bold">{activity.username}</span> reposted your post:
+                                <p>"{activity.activity_message}".</p>
+                            </a>
+                            <span className="time-string"
+                                style={{ fontSize: '0.8em', color: 'gray' }}
+                            >{timeString}</span>
                         </>
 
                     </>
                 );
             default:
-                return <p>"{activity.activity_message}"</p>;
+            // return <p>"{activity.activity_message}"</p>;
         }
     };
 
