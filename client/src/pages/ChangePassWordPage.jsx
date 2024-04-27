@@ -10,8 +10,10 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import useShowToast from "../hooks/useShowToast";
+import { useNavigate } from "react-router-dom";
 
 export default function ChangePassWordPage() {
+  const navigate = useNavigate();
   const showToast = useShowToast();
   const [inputs, setInputs] = useState({
     oldPassword: "",
@@ -41,6 +43,10 @@ export default function ChangePassWordPage() {
     } catch (error) {
       console.log(error);
     }
+  };
+  const handleQuit = () => {
+    navigate("/update");
+    setInputs({ ...inputs, oldPassword: "", newPassword: "" });
   };
   return (
     <Flex align={"center"} justify={"center"}>
@@ -83,12 +89,25 @@ export default function ChangePassWordPage() {
             }
           />
         </FormControl>
-        <Stack spacing={6}>
+        <Stack spacing={6} direction={["column", "row"]}>
           <Button
-            bg={"blue.400"}
+            bg={"red.400"}
             color={"white"}
+            w="full"
             _hover={{
-              bg: "blue.500",
+              bg: "red.500",
+            }}
+            onClick={handleQuit}
+          >
+            Quit
+          </Button>
+
+          <Button
+            bg={"green.400"}
+            color={"white"}
+            w="full"
+            _hover={{
+              bg: "green.500",
             }}
             onClick={handleChangePass}
           >

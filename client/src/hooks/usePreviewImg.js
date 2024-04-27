@@ -3,6 +3,7 @@ import useShowToast from "./useShowToast";
 
 const usePreviewImg = () => {
   const [imgUrl, setImgUrl] = useState(null);
+  // const [file, setFile] = useState(null);
   const showToast = useShowToast();
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -17,7 +18,7 @@ const usePreviewImg = () => {
       showToast("Invalid file type", "Please select an image file", "error");
       setImgUrl(null);
     }
-    console.log(imgUrl);
+    // console.log(imgUrl);
   };
   return { handleImageChange, imgUrl };
 };

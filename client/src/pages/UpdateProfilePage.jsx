@@ -32,9 +32,34 @@ export default function UpdateProfilePage() {
   if (!inputs.bio) {
     inputs.bio = "";
   }
-  // console.log(user);
+
   const fileRef = useRef(null);
   const { handleImageChange, imgUrl } = usePreviewImg();
+  // const handleChangeAvatar = async () => {
+  // const formData = new FormData();
+  // formData.append('image', imgUrl);
+  //   try {
+  //     const res = await fetch("http://localhost:1000/account/avatar", {
+  //       method: "PUT",
+  //       credentials: "include",
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //       body: formData,
+  //     });
+  //     const data = await res.json();
+  //     if (data.error) {
+  //       showToast("Error", data.error, "error");
+  //       return;
+  //     }
+  //     // console.log(data);
+  //     if (data.message) {
+  //       showToast("Success", data.message, "success");
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
   const handleSubmitInfo = async () => {
     try {
       const res = await fetch("http://localhost:1000/account/edit", {
@@ -53,6 +78,19 @@ export default function UpdateProfilePage() {
       // console.log(data);
       if (data.message) {
         showToast("Success", data.message, "success");
+        setUser({
+          ...inputs,
+          profile_image_url: user.profile_image_url,
+          user_id: user.user_id,
+        });
+        localStorage.setItem(
+          "userInfo",
+          JSON.stringify({
+            ...inputs,
+            profile_image_url: user.profile_image_url,
+            user_id: user.user_id,
+          })
+        );
       }
     } catch (error) {
       console.log(error);
@@ -64,7 +102,7 @@ export default function UpdateProfilePage() {
       <Stack
         spacing={4}
         w={"full"}
-        maxW={"md"}
+        maxW={"lg"}
         bg={useColorModeValue("white", "gray.dark")}
         rounded={"xl"}
         boxShadow={"lg"}
@@ -83,17 +121,19 @@ export default function UpdateProfilePage() {
               />
             </Center>
             <Center w="full">
-              {/* <Button w="full">Change Avatar</Button> */}
-              <Button w="full" onClick={() => fileRef.current.click()}>
-                Choose Avatar
-              </Button>
-              <Input
-                type="file"
-                hidden
-                ref={fileRef}
-                onChange={handleImageChange}
-              />
-              {/* <Button w="full">Delete Avatar</Button> */}
+              <Stack spacing={6} direction={["column", "row"]}>
+                <Button w="full" onClick={() => fileRef.current.click()}>
+                  Change Avatar
+                </Button>
+                <Input
+                  type="file"
+                  hidden
+                  ref={fileRef}
+                  onChange={handleImageChange}
+                />
+                <Button w="full">Delete Avatar</Button>
+                {/* <Button w="full">Delete Avatar</Button> */}
+              </Stack>
             </Center>
           </Stack>
         </FormControl>
