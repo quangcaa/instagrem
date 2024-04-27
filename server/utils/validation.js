@@ -83,9 +83,11 @@ const updateProfileValidator = (profile) => {
             }),
 
         full_name: Joi.string()
+            .min(0)
             .max(50),
-            
+
         bio: Joi.string()
+            .min(0)
             .max(150),
     })
 
