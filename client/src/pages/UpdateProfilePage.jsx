@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 export default function UpdateProfilePage() {
   const showToast = useShowToast();
   const [user, setUser] = useRecoilState(userAtom);
+  const fileRef = useRef(null);
   const [inputs, setInputs] = useState({
     full_name: user.full_name,
     username: user.username,
@@ -33,33 +34,42 @@ export default function UpdateProfilePage() {
     inputs.bio = "";
   }
 
-  const fileRef = useRef(null);
   const { handleImageChange, imgUrl } = usePreviewImg();
-  // const handleChangeAvatar = async () => {
-  // const formData = new FormData();
-  // formData.append('image', imgUrl);
-  //   try {
-  //     const res = await fetch("http://localhost:1000/account/avatar", {
-  //       method: "PUT",
-  //       credentials: "include",
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //       body: formData,
-  //     });
-  //     const data = await res.json();
-  //     if (data.error) {
-  //       showToast("Error", data.error, "error");
-  //       return;
-  //     }
-  //     // console.log(data);
-  //     if (data.message) {
-  //       showToast("Success", data.message, "success");
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+  const handleChangeAvatar = async () => {
+    const file = fileRef.current.files[0];
+    if (!file) {
+      showToast("Error", "No file selected", "error");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await fetch("http://localhost:1000/account/avatar", {
+        method: "PUT",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log(data);
+      if (data.error) {
+        showToast("Error", data.error, "error");
+        return;
+      }
+
+      showToast("Success", data.message, "success");
+      setUser({ ...user, profile_image_url: imgUrl });
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          ...user,
+          profile_image_url: imgUrl,
+        })
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleSubmitInfo = async () => {
     try {
       const res = await fetch("http://localhost:1000/account/edit", {
@@ -76,22 +86,21 @@ export default function UpdateProfilePage() {
         return;
       }
       // console.log(data);
-      if (data.message) {
-        showToast("Success", data.message, "success");
-        setUser({
+
+      showToast("Success", data.message, "success");
+      setUser({
+        ...inputs,
+        profile_image_url: user.profile_image_url,
+        user_id: user.user_id,
+      });
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
           ...inputs,
           profile_image_url: user.profile_image_url,
           user_id: user.user_id,
-        });
-        localStorage.setItem(
-          "userInfo",
-          JSON.stringify({
-            ...inputs,
-            profile_image_url: user.profile_image_url,
-            user_id: user.user_id,
-          })
-        );
-      }
+        })
+      );
     } catch (error) {
       console.log(error);
     }
@@ -122,8 +131,12 @@ export default function UpdateProfilePage() {
             </Center>
             <Center w="full">
               <Stack spacing={6} direction={["column", "row"]}>
-                <Button w="full" onClick={() => fileRef.current.click()}>
+                <Button w="full" onClick={handleChangeAvatar}>
+                  {" "}
                   Change Avatar
+                </Button>
+                <Button w="full" onClick={() => fileRef.current.click()}>
+                  Choose Avatar
                 </Button>
                 <Input
                   type="file"
@@ -131,7 +144,7 @@ export default function UpdateProfilePage() {
                   ref={fileRef}
                   onChange={handleImageChange}
                 />
-                <Button w="full">Delete Avatar</Button>
+
                 {/* <Button w="full">Delete Avatar</Button> */}
               </Stack>
             </Center>
