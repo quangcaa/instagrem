@@ -46,7 +46,7 @@ class ActivityController {
             )
 
             // cache data in Redis
-            await client.set(`retrieveActivity:${receiver_id}`, JSON.stringify(activityResult))
+            await client.set(`retrieveActivity:${receiver_id}`, JSON.stringify(activityResult), { EX: 60 })
 
             return res.status(200).json({ success: true, activities: activityResult })
         } catch (error) {
