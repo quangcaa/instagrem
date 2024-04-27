@@ -1,9 +1,10 @@
-import { Flex, Image, useColorMode } from "@chakra-ui/react";
+import { Button, Flex, Image, useColorMode } from "@chakra-ui/react";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { AiFillHome } from 'react-icons/ai';
 import { RxAvatar } from 'react-icons/rx'
-import { Link as RouterLink } from "react-router-dom";
+import { Link, Link as RouterLink } from "react-router-dom";
+import {BsFillChatQuoteFill} from "react-icons/bs";
 
 const Header = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -26,9 +27,15 @@ const Header = () => {
       />
 
       {user && (
-        <RouterLink to={`/${user.username}`}>
-          <RxAvatar size={24} />
-        </RouterLink>
+        <Flex alignItems={"center"} gap={4}>
+          <Link as={RouterLink} to={`/${user.username}`}>
+            <RxAvatar size={24} />
+          </Link>
+
+          <Link as={RouterLink} to={`/chat`}>
+            <BsFillChatQuoteFill size={20} />
+          </Link>
+        </Flex>
       )}
 
     </Flex>
