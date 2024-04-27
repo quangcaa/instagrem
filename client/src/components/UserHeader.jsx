@@ -1,12 +1,17 @@
 import { Box, VStack, Flex, Text, Link } from "@chakra-ui/layout";
-import { Avatar, useToast } from "@chakra-ui/react";
+import { Avatar, useToast, Button } from "@chakra-ui/react";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/menu";
 import { Portal } from "@chakra-ui/portal";
+import { useRecoilState, useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
+import { Link as RouterLink } from "react-router-dom";
 
-const UserHeader = () => {
+const UserHeader = ({ user }) => {
   const toast = useToast();
+  const currentUser = useRecoilValue(userAtom);
+  console.log(currentUser);
   const copyURL = () => {
     const currentURL = window.location.href;
     navigator.clipboard.writeText(currentURL).then(() => {
@@ -24,10 +29,10 @@ const UserHeader = () => {
       <Flex justifyContent={"space-between"} w={"full"}>
         <Box>
           <Text fontSize={"2xl"} fontWeight={"bold"}>
-            Mark Zuck
+            {user?.full_name}
           </Text>
           <Flex gap={2} alignItems={"center"}>
-            <Text fontSize={"sm"}>markzuck</Text>
+            <Text fontSize={"sm"}>{user?.username}</Text>
             <Text
               fontSize={"xs"}
               bg={"gray.dark"}
@@ -41,8 +46,8 @@ const UserHeader = () => {
         </Box>
         <Box>
           <Avatar
-            name="Mark Zuck"
-            src="/zuck-avatar.png"
+            name={user?.full_name}
+            src={user?.profile_image_url}
             size={{
               base: "md",
               md: "xl",
@@ -50,10 +55,18 @@ const UserHeader = () => {
           />
         </Box>
       </Flex>
-      <Text>Chairman and Ceo Meta Platforms</Text>
+      <Text>{user?.bio}</Text>
+      {currentUser.user_id === user?.user_id && (
+        <Link as={RouterLink} to={"/update"}>
+          <Button size={"sm"}> Update Profile </Button>
+        </Link>
+      )}
+      {currentUser.user_id !== user?.user_id && (
+        <Button size={"sm"}> Follow </Button>
+      )}
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
-          <Text color={"gray.light"}>3.2k followers</Text>
+          <Text color={"gray.light"}>{user?.followers} followers</Text>
           <Box w="1" h="1" bg={"gray.light"} borderRadius={"full"}></Box>
           <Link color={"gray.light"}>instagram.com</Link>
         </Flex>

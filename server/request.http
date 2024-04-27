@@ -6,7 +6,7 @@ POST http://localhost:1000/auth/login
 Content-Type: application/json
 
 {
-    "username": "thaithai",
+    "username": "thaithai11111111",
     "password": "123456789"
 }
 
@@ -23,11 +23,11 @@ Content-Type: application/json
 ### change password
 PATCH http://localhost:1000/auth/changePassword
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTcxMjgxMDI5NH0.Calk3G2DTPgeaO4AaQCG1TUExn-YH4wETGLuXKe5mZE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTcxNDE0MjM4OCwiZXhwIjoxNzE1NDM4Mzg4fQ.ZNSv-Aur5-UfD5a67cEQ9zSPfbz5UsJsZMYKqDh7v_8
 
 {
-    "oldPassword": "hahaahaha",
-    "newPassword": "c"
+    "oldPassword": "10000000",
+    "newPassword": "123456789"
 }
 
 ### log out
@@ -81,7 +81,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhd
 ##################################################################################################################################
 ### get account edit
 GET http://localhost:1000/account/edit
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE3MTI5ODE4Mjd9.cZ4BjC1vQMEo-_qDNu_-Wvij5sNk8ltkTpPmoJp0eCo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTcxNDE0MTk3OCwiZXhwIjoxNzE1NDM3OTc4fQ.2gwAJIG1P4hZj3dT3hFdeKDmnabLJX9b7RY3-CfTIAM
 
 ### udpate account edit
 PUT http://localhost:1000/account/edit
