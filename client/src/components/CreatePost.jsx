@@ -73,7 +73,6 @@ const CreatePost = () => {
 
         // formData.append('image', selectedFiles);
 
-
         try {
             const res = await fetch(`http://localhost:1000/post/create`, {
                 method: "POST",
