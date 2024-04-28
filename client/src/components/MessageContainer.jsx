@@ -42,7 +42,7 @@ const MessageContainer = memo(() => {
         )}
         <Message ownMessage={true}/>
         <Message ownMessage={true}/>
-        <Message ownMessage={true}/>
+        <Message ownMessage={false}/>
         <Message ownMessage={true}/>
         <Message ownMessage={true}/>
 
