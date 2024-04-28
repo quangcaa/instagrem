@@ -6,29 +6,32 @@ const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
 
-    // @route [GET] /user/:username
-    // @desc get user information
+    // @route [GET] /user/:identifier
+    // @desc get user information by user_id or username
     // @access Public
     async retrieveUser(req, res) {
-        const { username } = req.params
-        const me = req.user.user_id
+        const { identifier } = req.params;
+        const me = req.user.user_id;
 
         try {
             // check if user information is cached
-            const cachedData = await client.get(`user:${username}`)
+            const cachedData = await client.get(`user:${identifier}`);
             if (cachedData) {
-                const userInfo = JSON.parse(cachedData)
-                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
+                const userInfo = JSON.parse(cachedData);
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo });
             }
 
             // check if user exists
-            const checkUser = await User.findOne(
-                { where: { username } },
-                { attributes: ['user_id'] }
-            )
+            const checkUser = await User.findOne({
+                where: sequelize.or(
+                    { user_id: identifier },
+                    { username: identifier }
+                ),
+                attributes: ['user_id', 'username']
+            });
 
             if (!checkUser) {
-                return res.status(400).json({ success: false, error: 'User not found' })
+                return res.status(400).json({ success: false, error: 'User not found' });
             }
 
             // retrieve user information
@@ -52,7 +55,7 @@ class UserController {
                 WHERE u.username = ?
                 `
                 , {
-                    replacements: [me, checkUser.user_id, username],
+                    replacements: [me, checkUser.user_id, checkUser.username],
                     type: sequelize.QueryTypes.SELECT
                 }
             )
@@ -64,7 +67,7 @@ class UserController {
             }
 
             // cache user information for 10 minutes
-            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 60 })
+            await client.set(`user:${checkUser.username}`, JSON.stringify(userInfo), { EX: 60 })
 
             res.status(200).json({ success: true, user: userInfo })
         } catch (error) {
