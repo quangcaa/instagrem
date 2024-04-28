@@ -123,7 +123,7 @@ class AuthController {
     logout(req, res) {
         try {
             res.cookie('jwt', '', { maxAge: 0 })
-            res.status(200).json({ message: 'Logged out successfully' })
+            return res.status(200).json({ message: 'Logged out successfully' })
         } catch (error) {
             console.error('Error logout function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
