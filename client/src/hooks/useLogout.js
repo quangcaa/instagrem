@@ -1,12 +1,10 @@
 import userAtom from "../atoms/userAtom";
 import { useSetRecoilState } from "recoil";
 import useShowToast from "./useShowToast";
-import { useHistory } from 'react-router-dom'
 
 const useLogout = () => {
 	const setUser = useSetRecoilState(userAtom);
 	const showToast = useShowToast();
-    const history = useHistory()
 
 	const logout = async () => {
 		try {
@@ -26,7 +24,7 @@ const useLogout = () => {
 				return;
 			}
 
-            history.push('/auth')
+            
 			localStorage.removeItem("userInfo");
 			setUser(null);
 		} catch (error) {
