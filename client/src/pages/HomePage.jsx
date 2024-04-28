@@ -4,6 +4,7 @@ import useShowToast from "../hooks/useShowToast";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom";
 import { Link } from "react-router-dom";
+import Post from "../components/Post";
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -45,13 +46,7 @@ const HomePage = () => {
       )}
 
       {posts.map((post) => (
-        <Box key={post._id} borderWidth="1px" borderRadius="lg" p="4">
-          <h1>{post.title}</h1>
-          <p>{post.body}</p>
-          <Link to={`/post/${post._id}`}>
-            <Button colorScheme="teal">View Post</Button>
-          </Link>
-        </Box>
+        <Post key={post._id} post={post} user_id={post.user_id} />
       ))}
 
     </>
