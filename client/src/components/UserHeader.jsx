@@ -9,7 +9,6 @@ import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
-import axios from "axios";
 
 const UserHeader = ({ user }) => {
 
@@ -42,8 +41,6 @@ const UserHeader = ({ user }) => {
     fetchFollowStatus(); // Fetch follow status when component mounts
   }, [user])
 
-  console.log(following)
-
   const copyURL = () => {
     const currentURL = window.location.href;
     navigator.clipboard.writeText(currentURL).then(() => {
@@ -62,7 +59,7 @@ const UserHeader = ({ user }) => {
       showToast("Error", "You need to login to follow a user", "error");
       return;
     }
-    setUpdating(true);
+    if(updating) return;
 
     try {
       const res = await fetch(`http://localhost:1000/user/${user.username}/follow`, {

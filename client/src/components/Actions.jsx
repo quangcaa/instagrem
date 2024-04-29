@@ -77,10 +77,11 @@ const Actions = ({ post: post_ }) => {
       }
 
       setPost({ ...post, comments_count: post.comments_count + 1 });
+
       showToast("Success", "Replied to post", "success");
+
       onClose()
       setReply("")
-      
     } catch (error) {
       console.log(error)
     } finally {

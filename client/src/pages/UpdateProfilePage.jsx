@@ -34,6 +34,8 @@ export default function UpdateProfilePage() {
     inputs.bio = "";
   }
 
+  const [updating, setUpdating] = useState(false);
+
   const { handleImageChange, imgUrl } = usePreviewImg();
   const handleChangeAvatar = async () => {
     const file = fileRef.current.files[0];
@@ -71,6 +73,8 @@ export default function UpdateProfilePage() {
     }
   };
   const handleSubmitInfo = async () => {
+    if (updating) return;
+    setUpdating(true);
     try {
       const res = await fetch("http://localhost:1000/account/edit", {
         method: "PUT",
@@ -102,7 +106,9 @@ export default function UpdateProfilePage() {
         })
       );
     } catch (error) {
-      console.log(error);
+      showToast("Error", error.message, "error");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -215,6 +221,7 @@ export default function UpdateProfilePage() {
               bg: "green.500",
             }}
             onClick={handleSubmitInfo}
+            isLoading={updating}
           >
             Submit
           </Button>

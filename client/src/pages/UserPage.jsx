@@ -5,38 +5,18 @@ import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { Flex, Spinner } from "@chakra-ui/react";
 import Post from "../components/Post";
+import useGetUserProfile from "../hooks/useGetUserProfile";
+import { useRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom";
 
 const UserPage = () => {
-  const [user, setUser] = useState(null);
+  const { user, loading } = useGetUserProfile();
   const { username } = useParams();
-
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const [posts, setPosts] = useRecoilState(postsAtom)
   const [fetchingPosts, setFetchingPosts] = useState(true);
-
   const showToast = useShowToast();
 
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const res = await fetch(`http://localhost:1000/user/${username}`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-
-        if (data.error) {
-          showToast("Error", data.error, "error");
-          return;
-        }
-
-        setUser(data.user);
-      } catch (error) {
-        showToast("Error", error.message, "error");
-      } finally {
-        setLoading(false)
-      }
-    };
 
     const getPosts = async () => {
       try {
@@ -51,6 +31,7 @@ const UserPage = () => {
         }
 
         setPosts(data.posts);
+
       } catch (error) {
         showToast("Error", error.message, "error");
         setPosts([]);
@@ -59,9 +40,11 @@ const UserPage = () => {
       }
     }
 
-    getUser();
     getPosts();
-  }, [username, showToast]);
+  }, [username, showToast], setPosts);
+
+
+
 
   if (!user && loading) {
     return (

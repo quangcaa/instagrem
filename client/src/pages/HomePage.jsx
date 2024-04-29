@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import Post from "../components/Post";
 
 const HomePage = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useRecoilState(postsAtom)
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
 
@@ -33,7 +33,7 @@ const HomePage = () => {
       }
     };
     getFeedPosts();
-  }, [showToast]);
+  }, [showToast, setPosts]);
 
   return (
     <>
