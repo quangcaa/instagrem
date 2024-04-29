@@ -11,7 +11,6 @@ import { Button } from '@chakra-ui/react';
 
 
 const Post = ({ post, user_id }) => {
-    const [liked, setLiked] = useState(false);
     const [user, setUser] = useState(null);
     const showToast = useShowToast();
 
@@ -40,8 +39,6 @@ const Post = ({ post, user_id }) => {
                 });
 
                 const data = await res.json();
-
-                console.log(data.user);
 
                 if (data.error) {
                     showToast("Error", data.error, "error")
@@ -124,18 +121,9 @@ const Post = ({ post, user_id }) => {
                         )}
 
                         <Flex gap={3} my={1}>
-                            <Actions liked={liked} setLiked={setLiked} />
+                            <Actions post={post} />
                         </Flex>
-                        <Flex gap={2} alignItems={"center"}>
-                            <Text color={"gray.light"} fontSize={"small"}>
-                                {post.likes_count} likes
-                            </Text>
-                            <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
-                            <Text color={"gray.light"} fontSize={"small"}>
-                                {post.comments_count} replies
-                            </Text>
 
-                        </Flex>
                     </Flex>
                 </Flex>
             </Link>

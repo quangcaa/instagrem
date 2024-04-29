@@ -7,11 +7,43 @@ import { Portal } from "@chakra-ui/portal";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import useShowToast from "../hooks/useShowToast";
+import axios from "axios";
 
 const UserHeader = ({ user }) => {
+
   const toast = useToast();
   const currentUser = useRecoilValue(userAtom);
-  console.log(currentUser);
+
+  const [following, setFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(user.follower_count);
+  const [updating, setUpdating] = useState(false);
+
+  const showToast = useShowToast();
+
+  const fetchFollowStatus = async () => {
+    try {
+      const res = await fetch(`http://localhost:1000/user/${user.username}/checkFollow`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await res.json(); // Extract JSON data
+      setFollowing(data.isFollowing);
+    } catch (error) {
+      console.error('Error fetching follow status:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFollowStatus(); // Fetch follow status when component mounts
+  }, [user])
+
+  console.log(following)
+
   const copyURL = () => {
     const currentURL = window.location.href;
     navigator.clipboard.writeText(currentURL).then(() => {
@@ -24,7 +56,51 @@ const UserHeader = ({ user }) => {
       });
     });
   };
+
+  const handleFollowUnfollow = async () => {
+    if (!currentUser) {
+      showToast("Error", "You need to login to follow a user", "error");
+      return;
+    }
+    setUpdating(true);
+
+    try {
+      const res = await fetch(`http://localhost:1000/user/${user.username}/follow`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        showToast("Error", data.error, "error");
+        return;
+      }
+
+      if (following) {
+        showToast("Success", `Unfollowed ${user.username}`, "success");
+        setFollowerCount(followerCount - 1);
+      } else {
+        showToast("Success", `Followed ${user.username}`, "success");
+        setFollowerCount(followerCount + 1);
+      }
+
+      setFollowing(!following);
+
+      console.log(data);
+
+    } catch (error) {
+      showToast("Error", error.message, "error");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   return (
+
     <VStack gap={4} alignItems={"start"}>
       <Flex justifyContent={"space-between"} w={"full"}>
         <Box>
@@ -55,18 +131,25 @@ const UserHeader = ({ user }) => {
           />
         </Box>
       </Flex>
+
       <Text>{user?.bio}</Text>
-      {currentUser.user_id === user?.user_id && (
+
+      {currentUser.user_id === user.user_id && (
         <Link as={RouterLink} to={"/update"}>
           <Button size={"sm"}> Update Profile </Button>
         </Link>
       )}
       {currentUser.user_id !== user?.user_id && (
-        <Button size={"sm"}> Follow </Button>
+        <Button size={"sm"} onClick={handleFollowUnfollow}
+          isLoading={updating}
+        >
+          {following ? "Unfollow" : "Follow"}
+        </Button>
       )}
+
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
-          <Text color={"gray.light"}>{user?.followers} followers</Text>
+          <Text color={"gray.light"}>{followerCount} followers</Text>
           <Box w="1" h="1" bg={"gray.light"} borderRadius={"full"}></Box>
           <Link color={"gray.light"}>instagram.com</Link>
         </Flex>
@@ -90,6 +173,7 @@ const UserHeader = ({ user }) => {
           </Box>
         </Flex>
       </Flex>
+
       <Flex w={"full"}>
         <Flex
           flex={1}
@@ -112,6 +196,7 @@ const UserHeader = ({ user }) => {
         </Flex>
       </Flex>
     </VStack>
+
   );
 };
 

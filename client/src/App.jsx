@@ -4,6 +4,7 @@ import UserPage from "./pages/UserPage";
 import PostPage from "./pages/PostPage";
 import Header from "./components/Header";
 import CreatePost from "./components/CreatePost";
+import LogoutButton from "./components/LogoutButton";
 import NotificationButton from "./components/NotificationButton"
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
