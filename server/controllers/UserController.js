@@ -6,29 +6,32 @@ const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
 
-    // @route [GET] /user/:username
-    // @desc get user information
+    // @route [GET] /user/:identifier
+    // @desc get user information by user_id or username
     // @access Public
     async retrieveUser(req, res) {
-        const { username } = req.params
-        const me = req.user.user_id
+        const { identifier } = req.params;
+        const me = req.user.user_id;
 
         try {
             // check if user information is cached
-            const cachedData = await client.get(`user:${username}`)
+            const cachedData = await client.get(`user:${identifier}`);
             if (cachedData) {
-                const userInfo = JSON.parse(cachedData)
-                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
+                const userInfo = JSON.parse(cachedData);
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo });
             }
 
             // check if user exists
-            const checkUser = await User.findOne(
-                { where: { username } },
-                { attributes: ['user_id'] }
-            )
+            const checkUser = await User.findOne({
+                where: sequelize.or(
+                    { user_id: identifier },
+                    { username: identifier }
+                ),
+                attributes: ['user_id', 'username']
+            });
 
             if (!checkUser) {
-                return res.status(400).json({ success: false, error: 'User not found' })
+                return res.status(400).json({ success: false, error: 'User not found' });
             }
 
             // retrieve user information
@@ -40,19 +43,19 @@ class UserController {
                     u.full_name,
                     u.bio,
                     u.profile_image_url,
-                    (SELECT COUNT(*) FROM follows WHERE follower_user_id = u.user_id) AS following,
-                    (SELECT COUNT(*) FROM follows WHERE followed_user_id = u.user_id) AS followers,
-                    EXISTS (
-                        SELECT 1 
+                    u.follower_count,
+                    u.following_count,
+                    (
+                        SELECT COUNT(*) 
                         FROM follows 
                         WHERE follower_user_id = ? 
                         AND followed_user_id = ?
-                    ) AS isFollowing
+                    ) > 0 AS isFollowing
                 FROM users u
                 WHERE u.username = ?
                 `
                 , {
-                    replacements: [me, checkUser.user_id, username],
+                    replacements: [me, checkUser.user_id, checkUser.username],
                     type: sequelize.QueryTypes.SELECT
                 }
             )
@@ -64,7 +67,7 @@ class UserController {
             }
 
             // cache user information for 10 minutes
-            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 300 })
+            // await client.set(`user:${checkUser.username}`, JSON.stringify(userInfo), { EX: 60 })
 
             res.status(200).json({ success: true, user: userInfo })
         } catch (error) {
@@ -218,6 +221,9 @@ class UserController {
                     followed_user_id: userFollowed
                 })
 
+                await User.increment('follower_count', { where: { user_id: userFollowed } })
+                await User.increment('following_count', { where: { user_id } })
+
                 // send follow activity
                 sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
 
@@ -234,7 +240,47 @@ class UserController {
                 }
             )
 
+            await User.decrement('follower_count', { where: { user_id: userFollowed } })
+            await User.decrement('following_count', { where: { user_id } })
+
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
+
+
+    // @route [GET] /user/:username/checkFollow
+    // @desc check follow user
+    // @access Private
+    async checkFollow(req, res) {
+        const { username } = req.params
+        const user_id = req.user.user_id
+
+        try {
+            // check if user exists
+            const userResults = await User.findOne(
+                { where: { username } },
+                { attributes: ['user_id'] }
+            )
+
+            if (!userResults) {
+                return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            const userFollowed = userResults.user_id
+
+            // check if already followed
+            const checkFollowed = await Follow.findOne(
+                { where: { follower_user_id: user_id, followed_user_id: userFollowed } }
+            )
+
+            if (!checkFollowed) {
+                return res.status(200).json({ success: true, message: 'Not following', isFollowing: false })
+            }
+
+            return res.status(200).json({ success: true, message: 'Following', isFollowing: true })
         } catch (error) {
             console.log(error)
             return res.status(500).json({ success: false, message: 'Internal server error' })

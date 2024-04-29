@@ -50,7 +50,7 @@ class AuthController {
             generateTokenAndSetCookie(user.user_id, res)
 
             // cache user data in Redis
-            await client.set(`getProfile:${user.user_id}`, JSON.stringify(user))
+            await client.set(`getProfile:${user.user_id}`, JSON.stringify(user), { EX: 60 })
 
             res.json({
                 success: true, message: 'Login successful',
@@ -123,7 +123,7 @@ class AuthController {
     logout(req, res) {
         try {
             res.cookie('jwt', '', { maxAge: 0 })
-            res.status(200).json({ message: 'Logged out successfully' })
+            return res.status(200).json({ message: 'Logged out successfully' })
         } catch (error) {
             console.error('Error logout function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })

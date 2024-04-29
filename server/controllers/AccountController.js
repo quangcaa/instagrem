@@ -27,7 +27,7 @@ class AccountController {
             )
 
             // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile))
+            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile), { EX: 60 })
 
             return res.send({ success: true, profile: userProfile })
         } catch (error) {
@@ -66,7 +66,7 @@ class AccountController {
             const updatedProfile = await User.findOne({ where: { user_id } })
 
             // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(updatedProfile))
+            await client.set(`getProfile:${user_id}`, JSON.stringify(updatedProfile), { EX: 60 })
 
             return res.status(201).send({ success: true, message: 'Profile updated successfully ! ! !' })
         } catch (error) {

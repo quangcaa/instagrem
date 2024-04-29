@@ -21,9 +21,11 @@ import {
 import { useRef, useState } from "react";
 import usePreviewImg from "../hooks/usePreviewingImg";
 import { BsFillImageFill } from "react-icons/bs";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
+import postsAtom from "../atoms/postsAtom";
+import { useParams } from "react-router-dom";
 
 const MAX_CHAR = 500;
 const MAX_IMAGES = 5;
@@ -37,6 +39,8 @@ const CreatePost = () => {
     const user = useRecoilValue(userAtom);
     const showToast = useShowToast();
     const [loading, setLoading] = useState(false);
+    const [posts, setPosts] = useRecoilState(postsAtom);
+    const { username } = useParams()
 
     const handleTextChange = (e) => {
         const inputText = e.target.value;
@@ -73,7 +77,6 @@ const CreatePost = () => {
 
         // formData.append('image', selectedFiles);
 
-
         try {
             const res = await fetch(`http://localhost:1000/post/create`, {
                 method: "POST",
@@ -84,15 +87,15 @@ const CreatePost = () => {
             const data = await res.json();
 
             if (data.success) {
-                // const newPost = data.post;
-                // console.log(newPost);
                 showToast("Success", "Post created successfully", "success");
 
             } else {
                 showToast("Error", data.error, "error");
                 return;
             }
-
+            if (username === user.username) {
+                setPosts([data.post, ...posts]);
+            }
             onClose();
             setPostText("");
             setImgUrl([]);
@@ -113,7 +116,6 @@ const CreatePost = () => {
                 onClick={onOpen}
                 size={{ base: "sm", sm: "md" }}
             >
-
                 <AddIcon />
             </Button>
             <Modal isOpen={isOpen} onClose={onClose}>
