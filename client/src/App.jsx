@@ -5,7 +5,6 @@ import PostPage from "./pages/PostPage";
 import Header from "./components/Header";
 import LogoutButton from "./components/LogoutButton";
 import CreatePost from "./components/CreatePost";
-import NotificationButton from "./components/NotificationButton"
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import { useRecoilValue } from "recoil";
@@ -30,8 +29,6 @@ function App() {
         <Route path="/:username/post/:post_id" element={<PostPage />} />
       </Routes>
 
-      {user && <NotificationButton />}
-      {user && <LogoutButton />}
       {user && <CreatePost />}
 
     </Container>

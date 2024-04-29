@@ -243,11 +243,11 @@ const NotificationButton = () => {
     return (
         <>
             <IconButton
-                position={"fixed"}
-                top={"30px"}
-                right={"75px"}
+                // position={"fixed"}
+                // top={"30px"}
+                // right={"75px"}
                 size={"sm"}
-                icon={isOpen ? <GoHeartFill size={25} /> : <GoHeart size={25} />}
+                icon={isOpen ? <GoHeartFill size={20} /> : <GoHeart size={20} />}
                 variant="ghost"
                 onClick={isOpen ? onClose : handleOpenNotification}
             />
