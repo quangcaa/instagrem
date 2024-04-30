@@ -16,38 +16,34 @@ import ChangePassWordPage from "./pages/ChangePassWordPage";
 
 function App() {
   const user = useRecoilValue(userAtom);
-  
+
   return (
-
     <Box position={"relative"} w={"full"}>
-
-    <Container maxW="620px">
-      <Header />
-      <Routes>
-        <Route path="/" element={user ? <HomePage /> : <Navigate to="/auth" />} />
-        <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" />} />
-        <Route path="/update" element={user ? <UpdateProfilePage /> : <Navigate to="/auth" />} />
-        <Route
-          path="/update/changepassword"
-          element={user ? <ChangePassWordPage /> : <Navigate to="/auth" />}
-        />
-        <Route path="/:username" element={user ?
-          (
-            <>
+      <Container maxW="620px">
+        <Header />
+        <Routes>
+          <Route path="/" element={user ? <HomePage /> : <Navigate to="/auth" />} />
+          <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/" />} />
+          <Route path="/update" element={user ? <UpdateProfilePage /> : <Navigate to="/auth" />} />
+          <Route
+            path="/update/changepassword"
+            element={user ? <ChangePassWordPage /> : <Navigate to="/auth" />}
+          />
+          <Route path="/:username" element={user ?
+            (
+              <>
+                <UserPage />
+                <CreatePost />
+              </>
+            ) : (
               <UserPage />
-              <CreatePost />
-            </>
-          ) : (
-            <UserPage />
-          )
-        } />
-        <Route path="/:username/post/:post_id" element={<PostPage />} />
-        <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
-        {/*  */}
-      </Routes>
-
+            )
+          } />
+          <Route path="/:username/post/:post_id" element={<PostPage />} />
+          <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
+        </Routes>
+      </Container>
       {user && <NotificationButton />}
-    </Container>
     </Box>
   );
 }

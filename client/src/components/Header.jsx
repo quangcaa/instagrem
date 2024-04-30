@@ -9,8 +9,9 @@ import useLogout from "../hooks/useLogout";
 import authScreenAtom from "../atoms/authAtom";
 import { BsFillChatQuoteFill } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
+import NotificationButton from "./NotificationButton";
 
-const Header = () => {
+const Header = ( ) => {
 	const { colorMode, toggleColorMode } = useColorMode();
 	const user = useRecoilValue(userAtom);
 	const logout = useLogout();
