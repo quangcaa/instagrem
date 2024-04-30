@@ -269,15 +269,16 @@ class PostController {
     // @access Private
     async retrieveFollowingFeed(req, res) {
         const user_id = req.user.user_id
-        const { offset } = req.params
+        const { offset = 0 } = req.params
 
         try {
             const followingList = await Follow.findAll({
                 where: { follower_user_id: user_id },
                 attributes: ['followed_user_id']
             })
+            const followingListIds = followingList.map(follow => follow.followed_user_id)
 
-            const userFollowingPost = await Post.find({ 'user_id': { $in: followingList } })
+            const userFollowingPost = await Post.find({ user_id: { $in: followingListIds } })
                 .sort({ likes_count: -1, comments_count: -1, createdAt: -1 })
                 .limit(20)
                 .skip(Number(offset))

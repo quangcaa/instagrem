@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import PostPage from "./pages/PostPage";
 import Header from "./components/Header";
+import CreatePost from "./components/CreatePost";
 import LogoutButton from "./components/LogoutButton";
 import CreatePost from "./components/CreatePost";
 import HomePage from "./pages/HomePage";
@@ -12,7 +13,7 @@ import userAtom from "./atoms/userAtom";
 
 function App() {
   const user = useRecoilValue(userAtom);
-  console.log(user);
+
   return (
     <Container maxW="620px">
       <Header />
@@ -29,6 +30,7 @@ function App() {
         <Route path="/:username/post/:post_id" element={<PostPage />} />
       </Routes>
 
+      {user && <LogoutButton />}
       {user && <CreatePost />}
 
     </Container>

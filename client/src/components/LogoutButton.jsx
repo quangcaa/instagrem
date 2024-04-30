@@ -13,6 +13,8 @@ const LogoutButton = () => {
     try {
       const res = await fetch("http://localhost:1000/auth/logout", {
         method: "POST",
+        credentials: "include",
+
         headers: {
           "Content-Type": "application/json",
         },

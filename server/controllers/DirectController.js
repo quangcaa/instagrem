@@ -13,7 +13,7 @@ class DirectController {
 
         try {
             const conversations = await Conversation.find({
-                participants: current_user
+                participants: { $in: [current_user] }
             })
 
             if (!conversations) {
@@ -21,24 +21,34 @@ class DirectController {
             }
 
             const inbox = await Promise.all(conversations.map(async (conversation) => {
+                const partner_id = conversation.participants.filter(participant => participant.toString() !== current_user.toString())
+
                 const user = await User.findOne({
-                    where: { user_id: conversation.participants.filter(id => id !== current_user)[0] }
+                    where: { user_id: partner_id }
                 })
 
-                const lastMessage = await Message.findOne({ _id: conversation.lastMessage_id})
+                const lastMessage = await Message.findOne({ _id: conversation.lastMessage_id })
                     .sort({ createdAt: -1 })
 
                 return {
-                    conversation,
-                    username: user.username,
-                    profile_image_url: user.profile_image_url,
-                    lastMessage : lastMessage.text,
-                    sender_id: lastMessage.sender_id,
-                    createdAt: lastMessage.createdAt
+                    conversation: {
+                        ...conversation.toObject(),
+                        participants: partner_id
+                    },
+                    user: {
+                        user_id: user.user_id,
+                        username: user.username,
+                        profile_image_url: user.profile_image_url
+                    },
+                    lastMessage: {
+                        text:lastMessage.text,
+                        createdAt: lastMessage.createdAt,
+                        sender_id: lastMessage.sender_id
+                    }
                 }
             }))
 
-            res.status(200).json({ success: true, message: 'Found inbox !', inbox })
+            res.status(200).json(inbox)
         } catch (error) {
             console.error('Error retrieveInbox function in DirectController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
