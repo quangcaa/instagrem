@@ -24,7 +24,7 @@ const HomePage = () => {
           credentials: "include",
         });
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         setPosts(data.posts);
       } catch (error) {
         showToast("Error", error.message, "error");

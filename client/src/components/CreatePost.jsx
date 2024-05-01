@@ -1,9 +1,10 @@
-import { AddIcon } from "@chakra-ui/icons";
+
 import {
     Button,
     CloseButton,
     Flex,
     FormControl,
+    IconButton,
     Image,
     Input,
     Modal,
@@ -20,6 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import usePreviewImg from "../hooks/usePreviewingImg";
+import { IoCreateOutline } from "react-icons/io5";
 import { BsFillImageFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
@@ -108,16 +110,14 @@ const CreatePost = () => {
 
     return (
         <>
-            <Button
-                position={"fixed"}
-                bottom={10}
-                right={5}
-                bg={useColorModeValue("gray.300", "gray.dark")}
+            <IconButton
+                size={"sm"}
+                icon={<IoCreateOutline size={30} />}
                 onClick={onOpen}
-                size={{ base: "sm", sm: "md" }}
-            >
-                <AddIcon />
-            </Button>
+                bg="transparent !important"
+                _hover={{ bg: 'transparent !important' }}
+            />
+
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
@@ -166,7 +166,7 @@ const CreatePost = () => {
                                     onClick={() => {
                                         setImgUrl([])
                                     }}
-                                    position={"absolute"}
+                                    // position={"absolute"}
                                     top={2}
                                     right={2}
                                     size="md"
@@ -177,7 +177,7 @@ const CreatePost = () => {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={handleCreatePost} isLoading={loading}>
+                        <Button colorScheme='blue' onClick={handleCreatePost} isLoading={loading}>
                             Post
                         </Button>
                     </ModalFooter>

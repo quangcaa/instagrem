@@ -36,28 +36,28 @@ const Notification = ({ activity }) => {
         let largestValue = 0;
 
         if (years > 0) {
-            largestUnit = "y";
+            largestUnit = "year";
             largestValue = years;
         } else if (months > 0) {
-            largestUnit = "mon";
+            largestUnit = "month";
             largestValue = months;
         } else if (days > 0) {
-            largestUnit = "d";
+            largestUnit = "day";
             largestValue = days;
         } else if (hours > 0) {
-            largestUnit = "h";
+            largestUnit = "hour";
             largestValue = hours;
         } else if (minutes > 0) {
-            largestUnit = "min";
+            largestUnit = "minute";
             largestValue = minutes;
         } else if (seconds > 0) {
-            largestUnit = "s";
+            largestUnit = "second";
             largestValue = seconds;
         }
 
         // Build the time string (if a largest unit was found)
         if (largestUnit) {
-            timeString = `${largestValue}${largestUnit}${largestValue > 1 ? 's' : ''} `;
+            timeString = `${largestValue} ${largestUnit}${largestValue > 1 ? 's' : ''} ago`;
         } else {
             timeString = "just now";
         }
@@ -79,10 +79,8 @@ const Notification = ({ activity }) => {
                             <a href={`/${activity.username}`}>
                                 <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            started following you.
-                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
-                                {timeString}
-                            </span>
+                            started following you.&nbsp;
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>{timeString} </span>
                         </p>
                     </div>
                 );
@@ -102,7 +100,7 @@ const Notification = ({ activity }) => {
                                 <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
                             liked your post:
-                            <a href={`/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
                             <span style={{ fontSize: '0.8em', color: 'gray' }}>
                                 {timeString}
                             </span>
@@ -126,7 +124,7 @@ const Notification = ({ activity }) => {
                                 <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
                             commented on your post:
-                            <a href={`/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
                             <span style={{ fontSize: '0.8em', color: 'gray' }}>
                                 {timeString}
                             </span>
@@ -150,7 +148,7 @@ const Notification = ({ activity }) => {
                                 <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
                             mentioned you on their post:
-                            <a href={`/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
                             <span style={{ fontSize: '0.8em', color: 'gray' }}>
                                 {timeString}
                             </span>
@@ -173,7 +171,7 @@ const Notification = ({ activity }) => {
                                 <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
                             reposted your post:
-                            <a href={`/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
                             <span style={{ fontSize: '0.8em', color: 'gray' }}>
                                 {timeString}
                             </span>
@@ -247,7 +245,7 @@ const NotificationButton = () => {
                 // top={"30px"}
                 // right={"75px"}
                 size={"sm"}
-                icon={isOpen ? <GoHeartFill size={20} /> : <GoHeart size={20} />}
+                icon={isOpen ? <GoHeartFill size={30} /> : <GoHeart size={30} />}
                 variant="ghost"
                 onClick={isOpen ? onClose : handleOpenNotification}
             />
@@ -277,10 +275,6 @@ const NotificationButton = () => {
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>
-
-            <IconButton
-
-            />
         </>
     );
 };

@@ -16,30 +16,34 @@ const UserHeader = ({ user }) => {
   const currentUser = useRecoilValue(userAtom);
 
   const [following, setFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(user.follower_count);
+  const [followerCount, setFollowerCount] = useState(user?.follower_count);
+  const [followingCount, setFollowingCount] = useState(user?.following_count);
+
   const [updating, setUpdating] = useState(false);
 
   const showToast = useShowToast();
 
-  const fetchFollowStatus = async () => {
-    try {
-      const res = await fetch(`http://localhost:1000/user/${user.username}/checkFollow`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      const data = await res.json(); // Extract JSON data
-      setFollowing(data.isFollowing);
-    } catch (error) {
-      console.error('Error fetching follow status:', error);
-    }
-  };
-
+  // Fetch follow status (conditionally executed)
   useEffect(() => {
-    fetchFollowStatus(); // Fetch follow status when component mounts
-  }, [user])
+    if (currentUser) {
+      const fetchFollowStatus = async () => {
+        try {
+          const res = await fetch(`http://localhost:1000/user/${user.username}/checkFollow`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+          const data = await res.json();
+          setFollowing(data.isFollowing);
+        } catch (error) {
+          console.error('Error fetching follow status:', error);
+        }
+      };
+      fetchFollowStatus();
+    }
+  }, [user, currentUser]);
 
   const copyURL = () => {
     const currentURL = window.location.href;
@@ -59,9 +63,10 @@ const UserHeader = ({ user }) => {
       showToast("Error", "You need to login to follow a user", "error");
       return;
     }
-    if(updating) return;
+    if (updating) return;
 
     try {
+      // ... (follow/unfollow logic remains the same)
       const res = await fetch(`http://localhost:1000/user/${user.username}/follow`, {
         method: "POST",
         headers: {
@@ -106,7 +111,7 @@ const UserHeader = ({ user }) => {
           </Text>
           <Flex gap={2} alignItems={"center"}>
             <Text fontSize={"sm"}>{user?.username}</Text>
-            <Text
+            {/* <Text
               fontSize={"xs"}
               bg={"gray.dark"}
               color={"gray.light"}
@@ -114,46 +119,40 @@ const UserHeader = ({ user }) => {
               borderRadius={"full"}
             >
               thread.next
-            </Text>
+            </Text> */}
           </Flex>
         </Box>
         <Box>
-          <Avatar
-            name={user?.full_name}
-            src={user?.profile_image_url}
-            size={{
-              base: "md",
-              md: "xl",
-            }}
-          />
+          <Avatar name={user?.full_name} src={user?.profile_image_url} size={{ base: "md", md: "xl" }} />
         </Box>
       </Flex>
 
       <Text>{user?.bio}</Text>
 
-      {currentUser.user_id === user.user_id && (
-        <Link as={RouterLink} to={"/update"}>
-          <Button size={"sm"}> Update Profile </Button>
+      {/* Login buttons or message based on currentUser */}
+
+      {currentUser ? (
+        currentUser.user_id !== user?.user_id ? (
+          <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
+            {following ? "Unfollow" : "Follow"}
+          </Button>
+        ) : (
+          <Link as={RouterLink} to={"/update"}>
+            <Button size={"sm"}>Update Profile</Button>
+          </Link>
+        )
+      ) : (
+        <Link as={RouterLink} to={"/auth"}>
+          <Button size="sm">Follow</Button>
         </Link>
-      )}
-      {currentUser.user_id !== user?.user_id && (
-        <Button size={"sm"} onClick={handleFollowUnfollow}
-          isLoading={updating}
-        >
-          {following ? "Unfollow" : "Follow"}
-        </Button>
       )}
 
       <Flex w={"full"} justifyContent={"space-between"}>
-        <Flex gap={2} alignItems={"center"}>
+        <Flex gap={5} alignItems={"center"}>
           <Text color={"gray.light"}>{followerCount} followers</Text>
-          <Box w="1" h="1" bg={"gray.light"} borderRadius={"full"}></Box>
-          <Link color={"gray.light"}>instagram.com</Link>
+          <Text color={"gray.light"}>{followingCount} followings</Text>
         </Flex>
         <Flex>
-          <Box className="icon-container">
-            <BsInstagram size={24} cursor={"pointer"} />
-          </Box>
           <Box className="icon-container">
             <Menu>
               <MenuButton>
@@ -172,6 +171,7 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
+
         <Flex
           flex={1}
           borderBottom={"1.5px solid white"}
@@ -179,8 +179,9 @@ const UserHeader = ({ user }) => {
           pb="3"
           cursor={"pointer"}
         >
-          <Text fontWeight={"bold"}>Thread</Text>
+          <Text fontWeight={"bold"}>Posts</Text>
         </Flex>
+
         <Flex
           flex={1}
           borderBottom={"1.5px solid gray"}
@@ -191,6 +192,7 @@ const UserHeader = ({ user }) => {
         >
           <Text fontWeight={"bold"}>Replies</Text>
         </Flex>
+
       </Flex>
     </VStack>
 

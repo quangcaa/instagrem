@@ -40,8 +40,10 @@ const Actions = ({ post: post_ }) => {
 
       if (!liked) {
         setPost({ ...post, likes_count: post.likes_count + 1 });
+        showToast("Success", "Liked post", "success");
       } else {
         setPost({ ...post, likes_count: post.likes_count - 1 });
+        showToast("Success", "Unliked post", "success");
       }
 
       setLiked(!liked);

@@ -20,7 +20,6 @@ const PostPage = () => {
   const navigate = useNavigate();
 
   const currentPost = posts[0];
-
   console.log(currentPost)
 
   useEffect(() => {
@@ -40,7 +39,7 @@ const PostPage = () => {
           return;
         }
 
-        console.log(data)
+        // console.log(data)
 
         setPosts([data])
       } catch (error) {
@@ -81,7 +80,7 @@ const PostPage = () => {
   }
 
   if (!currentPost) return null;
-  console.log("currentPost", currentPost);
+  // console.log("currentPost", currentPost);
 
   return (
     <>
@@ -92,7 +91,6 @@ const PostPage = () => {
             <Text fontSize={"sm"} fontWeight={"bold"}>
               {user.username}
             </Text>
-            <Image src="/verified.png" w={4} h={4} ml={4} />
           </Flex>
         </Flex>
         <Flex gap={4} alignItems={"center"}>
@@ -123,7 +121,7 @@ const PostPage = () => {
       <>
         {currentPost.comments?.map((comment, index) => (
           <React.Fragment key={comment._id}>
-            <Comment comment={comment}/>
+            <Comment comment={comment} />
             {index !== currentPost.comments.length - 1 && <Divider my={4} />}
           </React.Fragment>
         ))}

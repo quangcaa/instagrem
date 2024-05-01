@@ -36,10 +36,6 @@ const Post = ({ post, user_id }) => {
             try {
                 const res = await fetch(`http://localhost:1000/user/${user_id}`, {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
                 });
 
                 const data = await res.json();
@@ -84,6 +80,7 @@ const Post = ({ post, user_id }) => {
     };
 
     if (!user) return null;
+
     return (
         <>
             <Link to={`/${user.username}/post/${post._id}`}>
@@ -97,7 +94,7 @@ const Post = ({ post, user_id }) => {
                         />
                     </Flex>
 
-                    <Flex flex={1} flexDirection={"column"} gap={2}>
+                    <Flex flex={1} flexDirection={"column"}>
                         <Flex justifyContent={"space-between"} w={"full"}>
                             <Flex w={"full"} alignItems={"center"}>
                                 <Text fontSize={"sm"} fontWeight={"bold"}
@@ -108,7 +105,6 @@ const Post = ({ post, user_id }) => {
                                 >
                                     {user?.username}
                                 </Text>
-                                <Image src="/verified.png" w={4} h={4} ml={1} />
                             </Flex>
 
                             <Flex gap={4} alignItems={"center"}>
@@ -137,7 +133,7 @@ const Post = ({ post, user_id }) => {
                         )}
 
                         <Flex gap={3} my={1}>
-                            <Actions post={post} setPosts={setPosts}/>
+                            <Actions post={post} setPosts={setPosts} />
                         </Flex>
 
                     </Flex>
