@@ -1,4 +1,13 @@
-import { Avatar, Flex, Text, Image, Box, Divider, Button, Spinner, } from "@chakra-ui/react";
+import {
+  Avatar,
+  Flex,
+  Text,
+  Image,
+  Box,
+  Divider,
+  Button,
+  Spinner,
+} from "@chakra-ui/react";
 import Actions from "../components/Actions";
 import React, { useEffect, useState } from "react";
 import Comment from "../components/Comment";
@@ -20,11 +29,11 @@ const PostPage = () => {
   const navigate = useNavigate();
 
   const currentPost = posts[0];
-  console.log(currentPost)
+  console.log(currentPost);
 
   useEffect(() => {
     const getPost = async () => {
-      setPosts([])
+      setPosts([]);
 
       try {
         const res = await fetch(`http://localhost:1000/post/${post_id}`, {
@@ -41,23 +50,26 @@ const PostPage = () => {
 
         // console.log(data)
 
-        setPosts([data])
+        setPosts([data]);
       } catch (error) {
         showToast("Error", error.message, "error");
       }
-    }
+    };
 
-    getPost()
-  }, [post_id, showToast, setPosts])
+    getPost();
+  }, [post_id, showToast, setPosts]);
 
   const handleDeletePost = async () => {
     try {
       if (!window.confirm("Are you sure you want to delete this post?")) return;
 
-      const res = await fetch(`http://localhost:1000/post/${currentPost.post._id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const res = await fetch(
+        `http://localhost:1000/post/${currentPost.post._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
       const data = await res.json();
       if (data.error) {
         showToast("Error", data.error, "error");
@@ -70,13 +82,12 @@ const PostPage = () => {
     }
   };
 
-
   if (!user && loading) {
     return (
       <Flex justifyContent={"center"}>
         <Spinner size={"xl"} />
       </Flex>
-    )
+    );
   }
 
   if (!currentPost) return null;
@@ -94,12 +105,21 @@ const PostPage = () => {
           </Flex>
         </Flex>
         <Flex gap={4} alignItems={"center"}>
-          <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
+          <Text
+            fontSize={"xs"}
+            width={36}
+            textAlign={"right"}
+            color={"gray.light"}
+          >
             {formatDistanceToNow(new Date(currentPost.post.createdAt))} ago
           </Text>
 
           {currentUser?.user_id === user.user_id && (
-            <DeleteIcon size={20} cursor={"pointer"} onClick={handleDeletePost} />
+            <DeleteIcon
+              size={20}
+              cursor={"pointer"}
+              onClick={handleDeletePost}
+            />
           )}
         </Flex>
       </Flex>
@@ -107,7 +127,12 @@ const PostPage = () => {
       <Text my={3}>{currentPost.post.caption}</Text>
 
       {currentPost.post.media_url && (
-        <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
+        <Box
+          borderRadius={6}
+          overflow={"hidden"}
+          border={"1px solid"}
+          borderColor={"gray.light"}
+        >
           <Image src={currentPost.post.media_url[0]} w={"full"} />
         </Box>
       )}
@@ -126,8 +151,6 @@ const PostPage = () => {
           </React.Fragment>
         ))}
       </>
-
-
     </>
   );
 };
