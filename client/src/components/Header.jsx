@@ -3,7 +3,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { GoHome, GoHomeFill } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
-import { RxAvatar } from "react-icons/rx";
+import { BsPerson } from "react-icons/bs";
 import { Link as RouterLink } from "react-router-dom";
 import useLogout from "../hooks/useLogout";
 import authScreenAtom from "../atoms/authAtom";
@@ -37,6 +37,12 @@ const Header = () => {
 				</Link>
 			)}
 
+			{user && (
+				<Link as={RouterLink} to="/search">
+					<IoSearchOutline size={30} />
+				</Link>
+			)}
+
 			{/* <Image
 				cursor={"pointer"}
 				alt='logo'
@@ -54,14 +60,8 @@ const Header = () => {
 			)}
 
 			{user && (
-				<Link as={RouterLink} to="/search">
-					<IoSearchOutline size={30} />
-				</Link>
-			)}
-
-			{user && (
 				<Link as={RouterLink} to={`/${user.username}`}>
-					<RxAvatar size={30} />
+					<BsPerson size={30} />
 				</Link>
 			)}
 
