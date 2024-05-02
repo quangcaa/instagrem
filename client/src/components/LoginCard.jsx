@@ -32,10 +32,11 @@ export default function LoginCard() {
     try {
       const res = await fetch("http://localhost:1000/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(inputs),
+        body: JSON.stringify(inputs)
       });
       const data = await res.json();
       if (data.error) {
@@ -106,7 +107,7 @@ export default function LoginCard() {
             </FormControl>
             <Stack spacing={10} pt={2}>
               <Button
-                loadingText="Submitting"
+                loadingText="Logging in"
                 size="lg"
                 bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}

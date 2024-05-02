@@ -2,14 +2,14 @@ const { sequelize, User, Follow } = require('../mysql_models')
 
 class SearchController {
 
-    // [POST] /search
+    // [GET] /search/:searchText
     // @desc search user
     // @access Private
     async search(req, res) {
-        const { term } = req.body
+        const { searchText } = req.params
         const user_is_searching = req.user.user_id
 
-        if (!term) {
+        if (!searchText) {
             return res.status(400).json({ message: 'Please provide search term' })
         }
 
@@ -17,6 +17,7 @@ class SearchController {
             const searchResults = await sequelize.query(
                 `
                 SELECT 
+                    u.user_id,
                     u.username,
                     u.full_name,
                     u.profile_image_url,
@@ -36,7 +37,7 @@ class SearchController {
                 LIMIT 40                
                 `
                 , {
-                    replacements: [user_is_searching, term],
+                    replacements: [user_is_searching, searchText],
                     type: sequelize.QueryTypes.SELECT,
                 })
 

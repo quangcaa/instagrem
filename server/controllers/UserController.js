@@ -6,22 +6,25 @@ const { sendFollowActivity } = require('../utils/sendActivity')
 
 class UserController {
 
-    // @route [GET] /user/:username
-    // @desc get user information
+    // @route [GET] /user/:identifier
+    // @desc get user information by user_id or username
     // @access Public
     async retrieveUser(req, res) {
-        const { username } = req.params
-        const me = req.user.user_id
+        const { identifier } = req.params;
+        const me = req.user.user_id;
 
         try {
             // check if user exists
-            const checkUser = await User.findOne(
-                { where: { username } },
-                { attributes: ['user_id'] }
-            )
+            const checkUser = await User.findOne({
+                where: sequelize.or(
+                    { user_id: identifier },
+                    { username: identifier }
+                ),
+                attributes: ['user_id', 'username']
+            });
 
             if (!checkUser) {
-                return res.status(400).json({ success: false, error: 'User not found' })
+                return res.status(400).json({ success: false, error: 'User not found' });
             }
 
             // check if user information is cached
@@ -52,7 +55,7 @@ class UserController {
                 WHERE u.username = ?
                 `
                 , {
-                    replacements: [me, checkUser.user_id, username],
+                    replacements: [me, checkUser.user_id, checkUser.username],
                     type: sequelize.QueryTypes.SELECT
                 }
             )
@@ -217,10 +220,10 @@ class UserController {
 
         try {
             // check if user exists
-            const userResults = await User.findOne(
-                { where: { username } },
-                { attributes: ['user_id'] }
-            )
+            const userResults = await User.findOne({
+                where: { username },
+                attributes: ['user_id']
+            })
 
             if (!userResults) {
                 return res.status(400).json({ success: false, error: 'User not found' })
@@ -251,7 +254,7 @@ class UserController {
                 const cachedData = await client.get(`user:${userFollowed}`)
                 if (cachedData) {
                     const userInfo = JSON.parse(cachedData)
-                    userInfo.followers = userInfo.followers + 1
+                    userInfo.followers = parseInt(userInfo.followers) + 1 // Parse followers count as integer
                     await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
                 }
 
@@ -272,11 +275,48 @@ class UserController {
             const cachedData = await client.get(`user:${userFollowed}`)
             if (cachedData) {
                 const userInfo = JSON.parse(cachedData)
-                userInfo.followers = userInfo.followers - 1
+                userInfo.followers = parseInt(userInfo.followers) - 1 
                 await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
             }
 
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ success: false, message: 'Internal server error' })
+        }
+    }
+
+
+    // @route [GET] /user/:username/checkFollow
+    // @desc check follow user
+    // @access Private
+    async checkFollow(req, res) {
+        const { username } = req.params
+        const user_id = req.user.user_id
+
+        try {
+            // check if user exists
+            const userResults = await User.findOne(
+                { where: { username } },
+                { attributes: ['user_id'] }
+            )
+
+            if (!userResults) {
+                return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            const userFollowed = userResults.user_id
+
+            // check if already followed
+            const checkFollowed = await Follow.findOne(
+                { where: { follower_user_id: user_id, followed_user_id: userFollowed } }
+            )
+
+            if (!checkFollowed) {
+                return res.status(200).json({ success: true, message: 'Not following', isFollowing: false })
+            }
+
+            return res.status(200).json({ success: true, message: 'Following', isFollowing: true })
         } catch (error) {
             console.log(error)
             return res.status(500).json({ success: false, message: 'Internal server error' })
