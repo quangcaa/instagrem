@@ -13,13 +13,6 @@ class UserController {
         const { identifier } = req.params;
 
         try {
-            // check if user information is cached
-            // const cachedData = await client.get(`user:${identifier}`);
-            // if (cachedData) {
-            //     const userInfo = JSON.parse(cachedData);
-            //     return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo });
-            // }
-
             // check if user exists
             const checkUser = await User.findOne({
                 where: sequelize.or(
@@ -33,6 +26,13 @@ class UserController {
                 return res.status(400).json({ success: false, error: 'User not found' });
             }
 
+            // check if user information is cached
+            const cachedData = await client.get(`user:${checkUser.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
+            }
+
             // retrieve user information
             let userInfo = await sequelize.query(
                 `
@@ -42,14 +42,14 @@ class UserController {
                     u.full_name,
                     u.bio,
                     u.profile_image_url,
-                    u.follower_count,
-                    u.following_count,
-                    (
-                        SELECT COUNT(*) 
+                    (SELECT COUNT(*) FROM follows WHERE follower_user_id = u.user_id) AS following,
+                    (SELECT COUNT(*) FROM follows WHERE followed_user_id = u.user_id) AS followers,
+                    EXISTS (
+                        SELECT 1 
                         FROM follows 
                         WHERE follower_user_id = ? 
                         AND followed_user_id = ?
-                    ) > 0 AS isFollowing
+                    ) AS isFollowing
                 FROM users u
                 WHERE u.username = ?
                 `
@@ -66,8 +66,8 @@ class UserController {
             //     delete userInfo.isFollowing
             // }
 
-            // cache user information for 10 minutes
-            // await client.set(`user:${checkUser.username}`, JSON.stringify(userInfo), { EX: 60 })
+            // cache user information for 3 minutes
+            await client.set(`user:${checkUser.user_id}`, JSON.stringify(userInfo), { EX: 180 })
 
             res.status(200).json({ success: true, user: userInfo })
         } catch (error) {
@@ -86,10 +86,20 @@ class UserController {
 
         try {
             // get user_id
-            const userResults = await User.findOne({ username }, 'user_id')
+            const userResults = await User.findOne({
+                where: { username: username },
+                attributes: ['user_id']
+            })
 
             if (!userResults || userResults.length === 0) {
                 return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            // check if data is cached
+            const cachedData = await client.get(`followers:${userResults.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
             // get followers
@@ -123,6 +133,9 @@ class UserController {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
             }
 
+            // cache for 3 minutes
+            await client.set(`followers:${userResults.user_id}`, JSON.stringify(followerResults), { EX: 180 })
+
             return res.status(200).json({ success: true, Follower: followerResults })
         } catch (error) {
             console.log(error)
@@ -140,10 +153,20 @@ class UserController {
 
         try {
             // get user_id
-            const userResults = await User.findOne({ username }, 'user_id')
+            const userResults = await User.findOne({
+                where: { username: username },
+                attributes: ['user_id']
+            })
 
             if (!userResults || userResults.length === 0) {
                 return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            // check if data is cached
+            const cachedData = await client.get(`following:${userResults.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
             // get following
@@ -176,6 +199,9 @@ class UserController {
             if (followingResults.length === 0) {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
             }
+
+            // cache for 3 minutes
+            await client.set(`following:${userResults.user_id}`, JSON.stringify(followingResults), { EX: 180 })
 
             return res.status(200).json({ success: true, Following: followingResults })
         } catch (error) {
@@ -250,10 +276,10 @@ class UserController {
 
         try {
             // check if user exists
-            const userResults = await User.findOne(
-                { where: { username } },
-                { attributes: ['user_id'] }
-            )
+            const userResults = await User.findOne({
+                where: { username },
+                attributes: ['user_id']
+            })
 
             if (!userResults) {
                 return res.status(400).json({ success: false, error: 'User not found' })
@@ -277,11 +303,16 @@ class UserController {
                     followed_user_id: userFollowed
                 })
 
-                await User.increment('follower_count', { where: { user_id: userFollowed } })
-                await User.increment('following_count', { where: { user_id } })
-
                 // send follow activity
                 sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
+
+                // Update cached user's followers count
+                const cachedData = await client.get(`user:${userFollowed}`)
+                if (cachedData) {
+                    const userInfo = JSON.parse(cachedData)
+                    userInfo.followers = parseInt(userInfo.followers) + 1 // Parse followers count as integer
+                    await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
+                }
 
                 return res.status(200).json({ success: true, message: 'Followed ! ! !' })
             }
@@ -296,8 +327,13 @@ class UserController {
                 }
             )
 
-            await User.decrement('follower_count', { where: { user_id: userFollowed } })
-            await User.decrement('following_count', { where: { user_id } })
+            // Update cached user's followers count
+            const cachedData = await client.get(`user:${userFollowed}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                userInfo.followers = parseInt(userInfo.followers) - 1
+                await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
+            }
 
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
         } catch (error) {

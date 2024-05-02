@@ -4,6 +4,7 @@ const session = require('express-session')
 const cookieParser = require('cookie-parser')
 const { Server } = require("socket.io")
 const path = require('path')
+const startBackup = require('./backup/cron')
 
 const route = require('./routes')
 const mongodb_con = require('./config/database/mongodb')
@@ -23,6 +24,9 @@ app.use(cookieParser())
 
 // Connect to db
 mongodb_con.connect()
+
+// Backup database
+startBackup()
 
 // Static files (public)
 app.use(express.static(path.join(__dirname, 'public')))

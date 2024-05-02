@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 require('dotenv').config()
 
-const mongoUri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_USERNAME}.9ftudqn.mongodb.net/instagrem?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_USERNAME}`
+const mongoUri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_USERNAME}.9ftudqn.mongodb.net/${process.env.MONGO_DB_DATABASE}?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_USERNAME}`
 
 async function connect() {
     try {

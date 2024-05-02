@@ -6,7 +6,7 @@ const path = require('path')
 const Sequelize = require('sequelize')
 const process = require('process')
 const basename = path.basename(__filename)
-const env = process.env.NODE_ENV || 'development' 
+const env = process.env.NODE_ENV || 'development'
 const config = require('../config/database/mysql2/mysql2.js')[env]
 const db = {}
 
@@ -36,5 +36,14 @@ Object.keys(db).forEach(modelName => {
 })
 
 db.sequelize = sequelize
+
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connected to MySQL database ...');
+  })
+  .catch(err => {
+    console.error('Unable to connect to MySQL:', err);
+  });
 
 module.exports = db

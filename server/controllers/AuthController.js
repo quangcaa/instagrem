@@ -101,6 +101,9 @@ class AuthController {
             // generate token & set cookie
             generateTokenAndSetCookie(newUser.user_id, res)
 
+            // cache user data in Redis
+            await client.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser))
+
             res.status(201).json({
                 success: true, message: "User registered successfully",
                 user: {
@@ -120,8 +123,11 @@ class AuthController {
     // @route [POST] /auth/logout
     // @desc Logout user
     // @access Private
-    logout(req, res) {
+    async logout(req, res) {
         try {
+            // clear redis cache
+            await client.del(`getProfile:${req.user.user_id}`)
+
             res.cookie('jwt', '', { maxAge: 0 })
             return res.status(200).json({ message: 'Logged out successfully' })
         } catch (error) {
