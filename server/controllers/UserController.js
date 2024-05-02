@@ -14,13 +14,6 @@ class UserController {
         const me = req.user.user_id
 
         try {
-            // check if user information is cached
-            const cachedData = await client.get(`user:${username}`)
-            if (cachedData) {
-                const userInfo = JSON.parse(cachedData)
-                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
-            }
-
             // check if user exists
             const checkUser = await User.findOne(
                 { where: { username } },
@@ -29,6 +22,13 @@ class UserController {
 
             if (!checkUser) {
                 return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            // check if user information is cached
+            const cachedData = await client.get(`user:${checkUser.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
             // retrieve user information
@@ -63,8 +63,8 @@ class UserController {
                 delete userInfo.isFollowing
             }
 
-            // cache user information for 10 minutes
-            await client.set(`user:${username}`, JSON.stringify(userInfo), { EX: 300 })
+            // cache user information for 3 minutes
+            await client.set(`user:${checkUser.user_id}`, JSON.stringify(userInfo), { EX: 180 })
 
             res.status(200).json({ success: true, user: userInfo })
         } catch (error) {
@@ -83,10 +83,20 @@ class UserController {
 
         try {
             // get user_id
-            const userResults = await User.findOne({ username }, 'user_id')
+            const userResults = await User.findOne({
+                where: { username: username },
+                attributes: ['user_id']
+            })
 
             if (!userResults || userResults.length === 0) {
                 return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            // check if data is cached
+            const cachedData = await client.get(`followers:${userResults.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
             // get followers
@@ -120,6 +130,9 @@ class UserController {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
             }
 
+            // cache for 3 minutes
+            await client.set(`followers:${userResults.user_id}`, JSON.stringify(followerResults), { EX: 180 })
+
             return res.status(200).json({ success: true, Follower: followerResults })
         } catch (error) {
             console.log(error)
@@ -137,10 +150,20 @@ class UserController {
 
         try {
             // get user_id
-            const userResults = await User.findOne({ username }, 'user_id')
+            const userResults = await User.findOne({
+                where: { username: username },
+                attributes: ['user_id']
+            })
 
             if (!userResults || userResults.length === 0) {
                 return res.status(400).json({ success: false, error: 'User not found' })
+            }
+
+            // check if data is cached
+            const cachedData = await client.get(`following:${userResults.user_id}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                return res.status(200).json({ success: true, message: 'this is cached data', user: userInfo })
             }
 
             // get following
@@ -173,6 +196,9 @@ class UserController {
             if (followingResults.length === 0) {
                 return res.status(200).json({ success: true, message: 'No followers found.' })
             }
+
+            // cache for 3 minutes
+            await client.set(`following:${userResults.user_id}`, JSON.stringify(followingResults), { EX: 180 })
 
             return res.status(200).json({ success: true, Following: followingResults })
         } catch (error) {
@@ -221,6 +247,14 @@ class UserController {
                 // send follow activity
                 sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
 
+                // Update cached user's followers count
+                const cachedData = await client.get(`user:${userFollowed}`)
+                if (cachedData) {
+                    const userInfo = JSON.parse(cachedData)
+                    userInfo.followers = userInfo.followers + 1
+                    await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
+                }
+
                 return res.status(200).json({ success: true, message: 'Followed ! ! !' })
             }
 
@@ -233,6 +267,14 @@ class UserController {
                     }
                 }
             )
+
+            // Update cached user's followers count
+            const cachedData = await client.get(`user:${userFollowed}`)
+            if (cachedData) {
+                const userInfo = JSON.parse(cachedData)
+                userInfo.followers = userInfo.followers - 1
+                await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
+            }
 
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
         } catch (error) {

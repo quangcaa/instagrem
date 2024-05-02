@@ -13,21 +13,11 @@ class AccountController {
         const user_id = req.user.user_id
 
         try {
-            // check if the data is already cached in Redis
-            const cachedData = await client.get(`getProfile:${user_id}`)
-            if (cachedData) {
-                const profile = JSON.parse(cachedData)
-                return res.status(200).json({ success: true, message: 'this is cached data', profile })
-            }
-
             // retrieve profile from db
-            const userProfile = await User.findOne(
-                { where: { user_id } },
-                { attributes: ['user_id', 'username', 'email', 'full_name', 'bio', 'profile_image_url'] }
-            )
-
-            // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(userProfile))
+            const userProfile = await User.findOne({
+                where: { user_id },
+                attributes: ['user_id', 'username', 'email', 'full_name', 'bio', 'profile_image_url']
+            })
 
             return res.send({ success: true, profile: userProfile })
         } catch (error) {
@@ -62,11 +52,8 @@ class AccountController {
                 return res.status(404).json({ success: false, error: 'User not found' })
             }
 
-            // Get the updated user profile from the database
-            const updatedProfile = await User.findOne({ where: { user_id } })
-
             // cache data in Redis
-            await client.set(`getProfile:${user_id}`, JSON.stringify(updatedProfile))
+            await client.del(`user:${user_id}`)
 
             return res.status(201).send({ success: true, message: 'Profile updated successfully ! ! !' })
         } catch (error) {
@@ -122,6 +109,9 @@ class AccountController {
                 { where: { user_id } }
             )
 
+            // cache data in Redis
+            await client.del(`user:${user_id}`)
+
             return res.status(200).json({ success: true, message: 'Changed avatar ! ! !' })
         } catch (error) {
             console.error('Error changeAvatar function in AccountController: ', error)
@@ -143,6 +133,15 @@ class AccountController {
                 { profile_image_url: default_avatar_url },
                 { where: { user_id } }
             )
+
+            // Get the updated user profile from the database
+            const updatedProfile = await User.findOne({
+                where: { user_id },
+                attributes: ['user_id', 'username', 'email', 'full_name', 'bio', 'profile_image_url']
+            })
+
+            // cache data in Redis
+            await client.del(`user:${user_id}`)
 
             return res.status(200).json({ success: true, message: 'Deleted avatar ! ! !' })
         } catch (error) {
