@@ -1,3 +1,4 @@
+const { loggerMYSQL } = require('../../../logger/winston')
 require('dotenv').config()
 
 module.exports = {
@@ -8,6 +9,7 @@ module.exports = {
     host: process.env.MYSQL_DB_HOST,
     port: 3306,
     dialect: 'mysql',
+    logging: (msg) => loggerMYSQL.info(`Sequelize: ${msg}`),
     dialectOptions: {
       bigNumberStrings: true,
     },

@@ -31,6 +31,7 @@ class ActivityController {
                     a.activity_message,
                     a.is_read,
                     a.createdAt,
+                    a.updatedAt,
                     u.user_id,
                     u.username,
                     u.profile_image_url
