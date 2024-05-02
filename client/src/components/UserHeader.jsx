@@ -11,13 +11,12 @@ import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 
 const UserHeader = ({ user }) => {
-
   const toast = useToast();
   const currentUser = useRecoilValue(userAtom);
 
   const [following, setFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(user?.follower_count);
-  const [followingCount, setFollowingCount] = useState(user?.following_count);
+  const [followerCount, setFollowerCount] = useState(user?.followers);
+  const [followingCount, setFollowingCount] = useState(user?.following);
 
   const [updating, setUpdating] = useState(false);
 
@@ -28,17 +27,20 @@ const UserHeader = ({ user }) => {
     if (currentUser) {
       const fetchFollowStatus = async () => {
         try {
-          const res = await fetch(`http://localhost:1000/user/${user.username}/checkFollow`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          });
+          const res = await fetch(
+            `http://localhost:1000/user/${user.username}/checkFollow`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            }
+          );
           const data = await res.json();
           setFollowing(data.isFollowing);
         } catch (error) {
-          console.error('Error fetching follow status:', error);
+          console.error("Error fetching follow status:", error);
         }
       };
       fetchFollowStatus();
@@ -67,13 +69,16 @@ const UserHeader = ({ user }) => {
 
     try {
       // ... (follow/unfollow logic remains the same)
-      const res = await fetch(`http://localhost:1000/user/${user.username}/follow`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
+      const res = await fetch(
+        `http://localhost:1000/user/${user.username}/follow`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
 
       const data = await res.json();
 
@@ -93,16 +98,14 @@ const UserHeader = ({ user }) => {
       setFollowing(!following);
 
       console.log(data);
-
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
       setUpdating(false);
     }
-  }
+  };
 
   return (
-
     <VStack gap={4} alignItems={"start"}>
       <Flex justifyContent={"space-between"} w={"full"}>
         <Box>
@@ -123,7 +126,11 @@ const UserHeader = ({ user }) => {
           </Flex>
         </Box>
         <Box>
-          <Avatar name={user?.full_name} src={user?.profile_image_url} size={{ base: "md", md: "xl" }} />
+          <Avatar
+            name={user?.full_name}
+            src={user?.profile_image_url}
+            size={{ base: "md", md: "xl" }}
+          />
         </Box>
       </Flex>
 
@@ -133,7 +140,11 @@ const UserHeader = ({ user }) => {
 
       {currentUser ? (
         currentUser.user_id !== user?.user_id ? (
-          <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
+          <Button
+            size={"sm"}
+            onClick={handleFollowUnfollow}
+            isLoading={updating}
+          >
             {following ? "Unfollow" : "Follow"}
           </Button>
         ) : (
@@ -171,7 +182,6 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-
         <Flex
           flex={1}
           borderBottom={"1.5px solid white"}
@@ -192,10 +202,8 @@ const UserHeader = ({ user }) => {
         >
           <Text fontWeight={"bold"}>Replies</Text>
         </Flex>
-
       </Flex>
     </VStack>
-
   );
 };
 
