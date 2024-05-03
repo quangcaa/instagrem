@@ -13,18 +13,18 @@ const useLogout = () => {
 				headers: {
 					"Content-Type": "application/json",
 				},
-                credentials: "include",
+				credentials: "include",
 			});
 			const data = await res.json();
 
-            console.log(data)
+			console.log(data)
 
 			if (data.error) {
 				showToast("Error", data.error, "error");
 				return;
 			}
 
-            
+
 			localStorage.removeItem("userInfo");
 			setUser(null);
 		} catch (error) {

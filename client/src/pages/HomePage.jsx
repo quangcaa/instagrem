@@ -1,13 +1,12 @@
-import { Button, Box, Flex, Spinner } from "@chakra-ui/react";
+import { Flex, Spinner } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom";
-import { Link } from "react-router-dom";
 import Post from "../components/Post";
 
 const HomePage = () => {
-  const [posts, setPosts] = useRecoilState(postsAtom)
+  const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
 
@@ -16,15 +15,18 @@ const HomePage = () => {
       setLoading(true);
       setPosts([]);
       try {
-        const res = await fetch("http://localhost:1000/post/following/:offset", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
+        const res = await fetch(
+          "http://localhost:1000/post/following/:offset",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         setPosts(data.posts);
       } catch (error) {
         showToast("Error", error.message, "error");
@@ -37,7 +39,9 @@ const HomePage = () => {
 
   return (
     <>
-      {!loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>}
+      {!loading && posts.length === 0 && (
+        <h1>Follow some users to see the feed</h1>
+      )}
 
       {loading && (
         <Flex justifyContent="center" alignItems="center" height="100vh">
@@ -48,7 +52,6 @@ const HomePage = () => {
       {posts.map((post) => (
         <Post key={post._id} post={post} user_id={post.user_id} />
       ))}
-
     </>
   );
 };

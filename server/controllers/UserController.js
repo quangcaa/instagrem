@@ -11,7 +11,6 @@ class UserController {
     // @access Public
     async retrieveUser(req, res) {
         const { identifier } = req.params;
-        const me = req.user.user_id;
 
         try {
             // check if user exists
@@ -20,7 +19,7 @@ class UserController {
                     { user_id: identifier },
                     { username: identifier }
                 ),
-                attributes: ['user_id', 'username']
+                attributes: ['user_id', 'username', 'full_name', 'bio', 'profile_image_url', 'follower_count', 'following_count']
             });
 
             if (!checkUser) {
@@ -55,16 +54,17 @@ class UserController {
                 WHERE u.username = ?
                 `
                 , {
-                    replacements: [me, checkUser.user_id, checkUser.username],
+                    replacements: [null, null, checkUser.username],
                     type: sequelize.QueryTypes.SELECT
                 }
             )
 
             userInfo = userInfo[0]
 
-            if (String(userInfo.user_id) === String(me)) {
-                delete userInfo.isFollowing
-            }
+            // No need to check for currently logged-in user (removed `me`)
+            // if (String(userInfo.user_id) === String(me)) {
+            //     delete userInfo.isFollowing
+            // }
 
             // cache user information for 3 minutes
             await client.set(`user:${checkUser.user_id}`, JSON.stringify(userInfo), { EX: 180 })
@@ -214,6 +214,62 @@ class UserController {
     // @route [POST] /user/:username/follow
     // @desc follow user
     // @access Private
+    // async followUser(req, res) {
+    //     const { username } = req.params
+    //     const user_id = req.user.user_id
+
+    //     const userResults = await User.findOne(
+    //         { where: { username } },
+    //         { attributes: ['user_id'] }
+    //     )
+
+    //     // check user existence
+    //     if (!userResults) {
+    //         return res.status(400).json({ success: false, error: 'User not found' })
+    //     }
+
+    //     // self-follow prevention
+    //     if (userResults.user_id === user_id) {
+    //         return res.status(400).json({ success: false, error: 'Cannot follow yourself' })
+    //     }
+
+    //     const userFollowed = userResults.user_id
+    //     const transaction = await sequelize.transaction();
+    //     try {
+    //         // Check if already followed within transaction
+    //         const checkFollowed = await Follow.findOne({
+    //             where: { follower_user_id: user_id, followed_user_id: userFollowed },
+    //             transaction,
+    //         });
+
+    //         if (!checkFollowed) {
+    //             // Follow (within transaction)
+    //             await Follow.create({
+    //                 follower_user_id: user_id,
+    //                 followed_user_id: userFollowed,
+    //             }, { transaction });
+
+    //             // Send follow activity notification (within transaction)
+    //             sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you', transaction);
+    //         } else {
+    //             // Unfollow (within transaction)
+    //             await Follow.destroy({
+    //                 where: {
+    //                     follower_user_id: user_id,
+    //                     followed_user_id: userFollowed,
+    //                 },
+    //                 transaction,
+    //             });
+    //         }
+
+    //         await transaction.commit();
+    //         return res.status(200).json({ success: true, message: (checkFollowed ? 'Unfollowed ! ! !' : 'Followed ! ! !') });
+    //     } catch (error) {
+    //         console.log(error);
+    //         await transaction.rollback();
+    //         return res.status(500).json({ success: false, message: 'Internal server error' });
+    //     }
+    // }
     async followUser(req, res) {
         const { username } = req.params
         const user_id = req.user.user_id
@@ -275,7 +331,7 @@ class UserController {
             const cachedData = await client.get(`user:${userFollowed}`)
             if (cachedData) {
                 const userInfo = JSON.parse(cachedData)
-                userInfo.followers = parseInt(userInfo.followers) - 1 
+                userInfo.followers = parseInt(userInfo.followers) - 1
                 await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
             }
 

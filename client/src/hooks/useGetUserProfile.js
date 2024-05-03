@@ -12,8 +12,7 @@ const useGetUserProfile = () => {
         const getUser = async () => {
             try {
                 const res = await fetch(`http://localhost:1000/user/${username}`, {
-                    method: "GET",
-                    credentials: "include",
+                    method: "GET"
                 });
 
                 const data = await res.json();

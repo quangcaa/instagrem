@@ -66,122 +66,117 @@ const Notification = ({ activity }) => {
         switch (type) {
             case "follows":
                 return (
-                    <>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>
                         <a href={`/${activity.username}`}>
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
                                 className="profile-image"
-                                style={{ width: '44px', height: '44px' }} // Inline styles
+                                style={{ width: '50px', height: '50px', borderRadius: '50%' }} // Inline styles
                             />
                         </a>
-                        <p>
+                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
                             <a href={`/${activity.username}`}>
-                                <span className="username bold">{activity.username}</span> started following you.
+                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            <span className="time-string"
-                                style={{ fontSize: '0.8em', color: 'gray' }}>
-                                {timeString}
-                            </span>
+                            started following you.&nbsp;
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>{timeString} </span>
                         </p>
-                    </>
+                    </div>
                 );
             case "likes":
                 return (
-                    <>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>
                         <a href={`/${activity.username}`}>
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
                                 className="profile-image"
-                                style={{ width: '44px', height: '44px' }} // Inline styles
-
+                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                             />
                         </a>
-
-                        <>
+                        <p style={{ display: 'inline-block', marginLeft: '10px' }}>
                             <a href={`/${activity.username}`}>
-                                <span className="username bold">{activity.username}</span> liked on your post:
-                                <p>"{activity.activity_message}".</p>
+                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            <span className="time-string"
-                                style={{ fontSize: '0.8em', color: 'gray' }}
-                            >{timeString}</span>
-                        </>
-                    </>
+                            liked your post:
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                                {timeString}
+                            </span>
+                        </p>
+
+                    </div>
                 );
             case "replies":
                 return (
-                    <>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>  {/* Wrap in a flexbox */}
                         <a href={`/${activity.username}`}>
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
                                 className="profile-image"
-                                style={{ width: '44px', height: '44px' }} // Inline styles
-
+                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                             />
                         </a>
-
-                        <>
+                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Text content */}
                             <a href={`/${activity.username}`}>
-                                <span className="username bold">{activity.username}</span> commented on your post:
-                                <p>"{activity.activity_message}".</p>
+                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            <span className="time-string"
-                                style={{ fontSize: '0.8em', color: 'gray' }}
-                            >{timeString}</span>
-                        </>
-                    </>
+                            commented on your post:
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                                {timeString}
+                            </span>
+                        </p>
+                    </div>
+
                 );
             case "mentions":
                 return (
-                    <>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>
                         <a href={`/${activity.username}`}>
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
                                 className="profile-image"
-                                style={{ width: '44px', height: '44px' }} // Inline styles
-
+                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                             />
                         </a>
-
-                        <>
+                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
                             <a href={`/${activity.username}`}>
-                                <span className="username bold">{activity.username}</span> mentioned you on their post:
-                                <p>"{activity.activity_message}".</p>
+                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            <span className="time-string"
-                                style={{ fontSize: '0.8em', color: 'gray' }}
-                            >{timeString}</span>
-                        </>
-                    </>
+                            mentioned you on their post:
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                                {timeString}
+                            </span>
+                        </p>
+                    </div>
                 );
             case "reposts":
                 return (
-                    <>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>
                         <a href={`/${activity.username}`}>
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
                                 className="profile-image"
-                                style={{ width: '44px', height: '44px' }} // Inline styles
-
+                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                             />
                         </a>
-
-                        <>
+                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
                             <a href={`/${activity.username}`}>
-                                <span className="username bold">{activity.username}</span> reposted your post:
-                                <p>"{activity.activity_message}".</p>
+                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
                             </a>
-                            <span className="time-string"
-                                style={{ fontSize: '0.8em', color: 'gray' }}
-                            >{timeString}</span>
-                        </>
-
-                    </>
+                            reposted your post:
+                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
+                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                                {timeString}
+                            </span>
+                        </p>
+                    </div>
                 );
             default:
             // return <p>"{activity.activity_message}"</p>;
@@ -246,16 +241,16 @@ const NotificationButton = () => {
     return (
         <>
             <IconButton
-                position={"fixed"}
-                top={"30px"}
-                right={"75px"}
+                // position={"fixed"}
+                // top={"30px"}
+                // right={"75px"}
                 size={"sm"}
-                icon={isOpen ? <GoHeartFill size={25} /> : <GoHeart size={25} />}
+                icon={isOpen ? <GoHeartFill size={30} /> : <GoHeart size={30} />}
                 variant="ghost"
                 onClick={isOpen ? onClose : handleOpenNotification}
             />
 
-            <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+            <Drawer placement="left" onClose={onClose} isOpen={isOpen} size="sm">
                 <DrawerContent>
                     <DrawerHeader borderBottomWidth="1px">Notifications</DrawerHeader>
                     <DrawerBody>
@@ -280,10 +275,6 @@ const NotificationButton = () => {
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>
-
-            <IconButton
-
-            />
         </>
     );
 };

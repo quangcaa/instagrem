@@ -43,7 +43,7 @@ export default function LoginCard() {
         showToast("Error", data.error, "error");
         return;
       }
-      console.log(data);
+      // console.log(data);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
       setUser(data.user);
     } catch (error) {
