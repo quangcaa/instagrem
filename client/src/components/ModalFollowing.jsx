@@ -15,19 +15,19 @@ import { useDisclosure } from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 
-function ModalFollowers({ nameOfButton }) {
+function ModalFollowing({ nameOfButton }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const showToast = useShowToast();
   const { username } = useParams();
-  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
   const btnRef = React.useRef(null);
 
   useEffect(() => {
-    const getFollowers = async () => {
+    const getFollowing = async () => {
       try {
         const res = await fetch(
-          `http://localhost:1000/user/${username}/followers`,
+          `http://localhost:1000/user/${username}/following`,
           { credentials: "include" }
         );
         const data = await res.json();
@@ -36,13 +36,13 @@ function ModalFollowers({ nameOfButton }) {
           showToast("Error", data.error, "error");
           return;
         }
-        setFollowers(data.user); // Ensure data.Follower is not undefined
+        setFollowing(data.Following); // Ensure data.Follower is not undefined
       } catch (error) {
         console.error(error); // Add this line to see fetch errors
       }
     };
     if (isOpen) {
-      getFollowers();
+      getFollowing();
     }
   }, [isOpen, username, showToast]);
 
@@ -68,27 +68,27 @@ function ModalFollowers({ nameOfButton }) {
         <ModalOverlay />
         <ModalContent bg={useColorModeValue("white", "gray.dark")}>
           <ModalHeader>
-            Followers
+            Following
             <Divider mt={2} />
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {followers ? (
-              followers.map((follower) => (
+            {following ? (
+              following.map((followin) => (
                 <Button
-                  key={follower.user_id}
+                  key={followin.user_id}
                   bg={useColorModeValue("white", "gray.dark")}
                   w="full"
                   onClick={() => {
-                    navigate(`/${follower.username}`);
+                    navigate(`/${followin.username}`);
                     onClose();
                   }}
                 >
-                  {follower.username}
+                  {followin.username}
                 </Button>
               ))
             ) : (
-              <p>No followers found.</p>
+              <p>No following found.</p>
             )}
           </ModalBody>
         </ModalContent>
@@ -97,4 +97,4 @@ function ModalFollowers({ nameOfButton }) {
   );
 }
 
-export default ModalFollowers;
+export default ModalFollowing;
