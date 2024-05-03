@@ -9,6 +9,7 @@ import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
+import ModalFollowers from "./ModalFollowers";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
@@ -160,7 +161,8 @@ const UserHeader = ({ user }) => {
 
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={5} alignItems={"center"}>
-          <Text color={"gray.light"}>{followerCount} followers</Text>
+          {/* <Text color={"gray.light"}>{followerCount} followers</Text> */}
+          <ModalFollowers nameOfButton={`${followerCount} followers`} />
           <Text color={"gray.light"}>{followingCount} followings</Text>
         </Flex>
         <Flex>
