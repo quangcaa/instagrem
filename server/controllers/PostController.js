@@ -1,6 +1,7 @@
 const Post = require('../mongo_models/Post')
 const Like = require('../mongo_models/Like')
 const Comment = require('../mongo_models/Comment')
+const mongoose = require('mongoose')
 
 const { sequelize, User, Follow } = require('../mysql_models')
 
@@ -129,34 +130,35 @@ class PostController {
         const user_id = req.user.user_id
 
         try {
+            const session = await mongoose.startSession()
+            session.startTransaction()
+
             const postDeleteCondition = { _id: post_id, user_id: user_id }
-            const deletedPost = await Post.findOneAndDelete(postDeleteCondition)
+            const deletedPost = await Post.findOneAndDelete(postDeleteCondition).session(session)
 
             // user not authorised 
             if (!deletedPost) {
+                await session.abortTransaction()
+                session.endSession()
                 return res.status(401).json({ success: false, message: 'Post not found or user not authorised' })
             }
 
-            // delete all comment
-            const getDeleteComment = await Comment.find({ post_id })
-            const deletedComment = await Comment.deleteMany({ post_id })
+            // delete likes and comments
+            await Promise.all([
+                Like.deleteMany({ post_id }).session(session),
+                Comment.deleteMany({ post_id }).session(session)
+            ])
 
-            // delete all like post and like comment
-            const deletedLike = await Like.deleteMany({
-                $or: [
-                    { post_id: post_id },
-                    { comment_id: { $in: getDeleteComment } }
-                ]
-            })
+            await session.commitTransaction()
 
             res.json({
                 success: true, message: 'Deleted post !',
                 post: deletedPost,
-                like: deletedLike,
-                comment: deletedComment
             })
         } catch (error) {
-            console.log(error)
+            await session.abortTransaction()
+
+            console.error('Error deletePost function: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }

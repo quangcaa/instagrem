@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const Conversation = new Schema(
     {
         participants: [{ type: String }],
-        lastMessage_id: { type: mongoose.Schema.ObjectId, ref: 'messages' }
+        lastMessage: { type: mongoose.Schema.ObjectId, ref: 'messages' }
     },
     {
         timestamps: true,
