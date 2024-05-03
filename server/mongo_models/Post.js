@@ -9,7 +9,7 @@ const Post = new Schema(
         likes_count: { type: Number, default: 0 },
         comments_count: { type: Number, default: 0 },
         media_url: [{ type: String }],
-        hashtags: [{ type: String }],
+        hashtags: [{ type: mongoose.Schema.ObjectId, ref: 'hashtags' }],
         mentions: [{ type: String }],
         status: { type: String, enum: ['POSTED', 'ARCHIVED', 'DELETED'], default: 'POSTED' },
     },
