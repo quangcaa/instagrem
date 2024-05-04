@@ -1,88 +1,96 @@
-const Post = require("../models/Post");
-const Like = require("../models/Like");
-const Comment = require("../models/Comment");
-const mysql_con = require("../config/db/mysql");
-const cloudinary = require("../config/storage/cloudinary");
+const Post = require('../mongo_models/Post')
+const Like = require('../mongo_models/Like')
+const Comment = require('../mongo_models/Comment')
+const mongoose = require('mongoose')
+
+const { sequelize, User, Follow } = require('../mysql_models')
+const { s3, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('../config/storage/s3')
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
+const { randomMediaName } = require('../utils/randomMediaName')
+const { sendMentionActivity } = require('../utils/sendActivity')
+
+const sharp = require('sharp')
 
 class PostController {
+
   // @route [POST] /post/create
   // @desc create post
   // @access Private
   async createPost(req, res) {
-    const { caption } = req.body;
+    const { caption } = req.body
+    const user_id = req.user.user_id
 
-    // let transformation = {
-    //     width: 555,
-    //     height: 555,
-    //     crop: 'fill',
-    //     gravity: 'center',
-    //     quality: 'auto:best'
-    // }
-
-    // check if caption is provided
-    if (!caption) {
-      return res.status(400).json({ success: false, error: "Missing caption" });
-    }
-
-    // check if media is provided
-    if (!req.files["image"] && !req.files["video"]) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Please provide the image to upload." });
+    // check if caption and image is provided
+    if (!caption && !req.files) {
+      return res.status(400).json({ success: false, error: 'Please provide caption or media file.' })
     }
 
     // extract hashtags and mentions
-    const hashtags = extractHashtags(caption);
-    const mentions = extractMentions(caption);
+    const hashtags = extractHashtags(caption)
+    const mentions = extractMentions(caption)
 
     // create post
     try {
       let mediaUrls = [];
 
-      if (req.files["image"]) {
-        const images = req.files["image"];
-        for (let image of images) {
-          const imageResult = await cloudinary.uploader.upload(image.path, {
-            folder: "posts",
-            resource_type: "auto",
-          });
-          mediaUrls.push(imageResult.secure_url);
-        }
-      }
+      if (req.files) {
+        const images = req.files
 
-      if (req.files["video"]) {
-        const video = req.files["video"][0];
-        const videoResult = await cloudinary.uploader.upload(video.path, {
-          folder: "posts",
-          resource_type: "video",
-        });
-        mediaUrls.push(videoResult.secure_url);
+        if (images.length > 5) {
+          return res.status(400).json({ success: false, error: 'Maximum 5 images allowed.' })
+        }
+
+        for (let image of images) {
+          const buffer = await sharp(image.buffer)
+            .resize({ width: 560, height: 770, fit: 'contain' })
+            .toBuffer()
+
+          const params = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: randomMediaName(),
+            Body: buffer,
+            ContentType: image.mimetype
+          }
+
+          const command = new PutObjectCommand(params)
+          await s3.send(command)
+
+          mediaUrls.push(params.Key)
+        }
       }
 
       const newPost = new Post({
         caption,
         media_url: mediaUrls,
-        hashtags: hashtags,
-        mentions: mentions,
-        user_id: req.userId,
-      });
+        hashtags,
+        mentions,
+        user_id,
+      })
 
       await newPost.save();
 
-      res.json({ success: true, message: "Created post !", post: newPost });
+      // add mention activity
+      for (let mention of mentions) {
+        const receiver = await User.findOne({ username: mention.substring(1) })
+        if (receiver && receiver !== null) {
+          sendMentionActivity(req, user_id, receiver.user_id, 'mentions', newPost._id, '', 'Mentioned you', newPost.caption)
+        }
+      }
+
+      res.json({ success: true, message: 'Created post!', post: newPost })
     } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      console.log(error)
+      res.status(500).json({ success: false, message: 'Internal server error' })
     }
   }
 
-  // @route [PUT] /post/:id
+  // @route [PUT] /post/:post_id
   // @desc update post
   // @access Private
   async updatePost(req, res) {
-    const { caption, media_url, hashtags, mentions } = req.body;
+    const { post_id } = req.params
+    const { caption, media_url, hashtags, mentions } = req.body
+    const user_id = req.user.user_id
 
     // check if caption is provided
     if (!caption) {
@@ -94,19 +102,15 @@ class PostController {
     // update post
     try {
       let updatedPost = {
-        caption: caption || "",
+        caption: caption || '',
         media_url: media_url || [],
         hashtags: hashtags || [],
         mentions: mentions || [],
-      };
+      }
 
-      const postUpdateCondition = { _id: req.params.id, user_id: req.userId };
+      const postUpdateCondition = { _id: post_id, user_id }
 
-      updatedPost = await Post.findOneAndUpdate(
-        postUpdateCondition,
-        updatedPost,
-        { new: true }
-      );
+      updatedPost = await Post.findOneAndUpdate(postUpdateCondition, updatedPost, { new: true })
 
       // user not authorised
       if (!updatedPost) {
@@ -127,48 +131,52 @@ class PostController {
     }
   }
 
-  // @route [DELETE] /post/:id
+  // @route [DELETE] /post/:post_id
   // @desc delete post
   // @access Private
   async deletePost(req, res) {
-    // delete post
-    try {
-      const postDeleteCondition = { _id: req.params.id, user_id: req.userId };
-      const deletedPost = await Post.findOneAndDelete(postDeleteCondition);
+    const { post_id } = req.params
+    const user_id = req.user.user_id
 
-      // user not authorised
+    try {
+      const session = await mongoose.startSession()
+      session.startTransaction()
+
+      const postDeleteCondition = { _id: post_id, user_id: user_id }
+      const deletedPost = await Post.findOneAndDelete(postDeleteCondition).session(session)
+
+      // user not authorised 
       if (!deletedPost) {
-        return res
-          .status(401)
-          .json({
-            success: false,
-            message: "Post not found or user not authorised",
-          });
+        await session.abortTransaction()
+        session.endSession()
+        return res.status(401).json({ success: false, message: 'Post not found or user not authorised' })
       }
 
-      res.json({ success: true, message: "Deleted post !", post: deletedPost });
-    } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
-    }
-  }
+      // delete likes and comments
+      await Promise.all([
+        Like.deleteMany({ post_id }).session(session),
+        Comment.deleteMany({ post_id }).session(session)
+      ])
 
-  // @route [GET] /post
-  // @desc get posts
-  // @access Private
-  async getPost(req, res) {
-    console.log(req);
-    try {
-      const posts = await Post.find({ user_id: req.userId });
+      await session.commitTransaction()
 
-      res.json({ success: true, posts });
+      // delete on s3
+      for (let image of deletedPost.media_url) {
+        const params = {
+          Bucket: process.env.BUCKET_NAME,
+          Key: image
+        }
+        const command = new DeleteObjectCommand(params)
+        await s3.send(command)
+      }
+
+      res.json({
+        success: true, message: 'Deleted post !',
+        post: deletedPost,
+      })
     } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      console.error('Error deletePost function: ', error)
+      res.status(500).json({ success: false, message: 'Internal server error' })
     }
   }
 
@@ -195,45 +203,85 @@ class PostController {
           .json({ success: false, message: "Post not found" });
       }
 
-      // get post author
-      const getPostAuthorQuery = `
-                                       SELECT username, profile_image_url
-                                       FROM users
-                                       WHERE user_id = ?
-                                       `;
-      const getPostAuthor = (getPostAuthorQuery) => {
-        return new Promise((resolve, reject) => {
-          mysql_con.query(
-            getPostAuthorQuery,
-            [postById.user_id],
-            (error, results) => {
-              if (error) {
-                reject(error);
-              }
+      let mediaUrls = []
 
-              resolve(results[0]);
-            }
-          );
-        });
-      };
-      const postAuthor = await getPostAuthor(getPostAuthorQuery);
+      for (let image of postById.media_url) {
+        // get signed url for media
+        const getObjectParams = {
+          Bucket: process.env.BUCKET_NAME,
+          Key: image
+        }
+        const command = new GetObjectCommand(getObjectParams)
+        const url = await getSignedUrl(s3, command, { expiresIn: 60 })
+        mediaUrls.push(url)
+      }
+
+      postById.media_url = mediaUrls
+
+      // get post author
+      const postAuthor = await User.findByPk(
+        postById.user_id,
+        { attributes: ['user_id', 'username', 'profile_image_url'] }
+      )
 
       // get post comments
-      const postComments = await Comment.find({ post_id });
+      const postComments = await Comment.find({ post_id }).sort({ createdAt: -1 })
 
       res.json({
         success: true,
         user: postAuthor,
         post: postById,
         comments: postComments,
-      });
+      })
     } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      console.log(error)
+      res.status(500).json({ success: false, message: 'Internal server error' })
     }
   }
+
+  // @route [GET] /post/u/:username
+  // @desc retrieve user posts
+  // @access Public
+  async retrieveUserPosts(req, res) {
+    const { username } = req.params
+
+    try {
+      const user = await User.findOne(
+        { where: { username } },
+        { attributes: ['user_id', 'username', 'profile_image_url'] }
+      )
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' })
+      }
+
+      const posts = await Post.find({ user_id: user.user_id })
+        .sort({ createdAt: -1 })
+        .select({ post_type: 0, status: 0, updatedAt: 0 })
+
+      for (let post of posts) {
+        let mediaUrls = []
+
+        for (let image of post.media_url) {
+          // get signed url for media
+          const getObjectParams = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: image
+          }
+          const command = new GetObjectCommand(getObjectParams)
+          const url = await getSignedUrl(s3, command, { expiresIn: 60 })
+          mediaUrls.push(url)
+        }
+
+        post.media_url = mediaUrls
+      }
+
+      return res.status(200).json({ success: true, user, posts })
+    } catch (error) {
+      console.error('Error retrieveUserPosts function in PostController: ', error)
+      return res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
 
   // @route [GET] /post/explore/:hashtag
   // @desc retrieve posts by hashtag
@@ -275,79 +323,25 @@ class PostController {
     }
   }
 
-  // @route [POST] /:post_id/like
-  // @desc like post
+
+  // @route [GET] /post/following/:offset
+  // @desc retrieve user following feed
   // @access Private
-  async likePost(req, res) {
-    const { post_id } = req.params;
+  async retrieveFollowingFeed(req, res) {
+    const user_id = req.user.user_id
+    const { offset = 0 } = req.params
 
     try {
-      // check if post exists
-      const post = await Post.findById(post_id);
-      if (!post) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Post not found" });
-      }
-
-      // check if user already liked post
-      const existingLike = await Like.findOne({ post_id, user_id: req.userId });
-
-      if (existingLike) {
-        // unlike post
-        await Like.findByIdAndDelete(existingLike._id);
-
-        // decrement post likes count
-        await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: -1 } });
-
-        return res.json({ success: true, message: "Unliked post !" });
-      }
-
-      // save like to db
-      const newLike = new Like({
-        post_id,
-        user_id: req.userId,
-      });
-      await newLike.save();
-
-      // increment post likes count
-      await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } });
-
-      res.json({ success: true, message: "Liked post !" });
-    } catch (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
-    }
-  }
-
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // @route [GET] /post/feed
-  // @desc retrieve user feed
-  // @access Private
-  async retrieveFeed(req, res) {
-    const user_id = req.userId;
-    const offset = 0;
-
-    try {
-      let followingList = [];
-
-      const userFollowingQuery = `
-                                       SELECT followed_user_id
-                                       FROM followers
-                                       WHERE follower_user_id = ? 
-                                       `;
-      mysql_con.query(userFollowingQuery, [user_id], (error, results) => {
-        followingList = results;
-      });
-
-      const userFollowingPost = await Post.find({
-        user_id: { $in: followingList },
+      const followingList = await Follow.findAll({
+        where: { follower_user_id: user_id },
+        attributes: ['followed_user_id']
       })
-        .sort({ createdAt: -1 })
+      const followingListIds = followingList.map(follow => follow.followed_user_id)
+
+      const userFollowingPost = await Post.find({ user_id: { $in: followingListIds } })
+        .sort({ likes_count: -1, comments_count: -1, createdAt: -1 })
         .limit(20)
-        .skip(Number(offset));
+        .skip(Number(offset))
 
       res
         .status(200)
@@ -361,14 +355,33 @@ class PostController {
   }
 }
 
-function extractHashtags(text) {
-  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
-  return text.match(hashtagRegex) || [];
+// function for createPost
+function extractHashtags(caption) {
+  const hashtags = new Set()
+
+  const regex = /#[a-zA-Z0-9_]+/g
+
+  let match
+  while ((match = regex.exec(caption)) !== null) {
+    const hashtag = match[0]// Use match[0] to get the entire matched hashtag including '#'
+    hashtags.add(hashtag)
+  }
+
+  return Array.from(hashtags)// Convert set to array
 }
 
-function extractMentions(text) {
-  const mentionRegex = /@[a-zA-Z0-9_]+/g;
-  return text.match(mentionRegex) || [];
+function extractMentions(caption) {
+  const mentions = new Set()
+
+  const regex = /@[a-zA-Z0-9_]+/g
+
+  let match
+  while ((match = regex.exec(caption)) !== null) {
+    const mention = match[0]// Use match[0] to get the entire matched mention including '@'
+    mentions.add(mention)
+  }
+
+  return Array.from(mentions)// Convert set to array
 }
 
-module.exports = new PostController();
+module.exports = new PostController()

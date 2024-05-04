@@ -3,7 +3,7 @@ const Joi = require('joi')
 const registerValidator = (data) => {
     const rule = Joi.object({
         username: Joi.string()
-            .regex(/^[a-zA-Z0-9_.]+$/)
+            .regex(/^(?=.*[a-zA-Z])[a-zA-Z0-9_.]+$/)
             .min(6)
             .max(30)
             .required()
@@ -61,7 +61,7 @@ const changePasswordValidator = (password) => {
 const updateProfileValidator = (profile) => {
     const rule = Joi.object({
         username: Joi.string()
-            .regex(/^[a-zA-Z0-9_.]+$/)
+            .regex(/^(?=.*[a-zA-Z])[a-zA-Z0-9_.]+$/)
             .min(6)
             .max(30)
             .required()
@@ -83,9 +83,11 @@ const updateProfileValidator = (profile) => {
             }),
 
         full_name: Joi.string()
+            .min(0)
             .max(50),
-            
+
         bio: Joi.string()
+            .min(0)
             .max(150),
     })
 
