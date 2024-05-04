@@ -28,9 +28,6 @@ function startBackup() {
       console.log('MySQL backup successful')
     }
   })
-
-  // MySQL Backup  
-
 } 
 
 module.exports = startBackup 

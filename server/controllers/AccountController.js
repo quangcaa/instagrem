@@ -1,5 +1,6 @@
 const { sequelize, User } = require('../mysql_models')
 const { client } = require('../config/database/redis')
+
 const cloudinary = require('../config/storage/cloudinary')
 
 const { updateProfileValidator } = require('../utils/validation')
@@ -74,20 +75,6 @@ class AccountController {
         }
 
         try {
-            // delete the last one
-            // const deletaAvatarQuery = `
-            //                            SELECT profile_image_url
-            //                            FROM users
-            //                            WHERE user_id = ?
-            //                            `
-            // const [lastAvatar] = await mysql_con.promise().query(deletaAvatarQuery, [user_id])
-            // const parts = lastAvatar[0].profile_image_url.split('/')
-            // const fileName = parts.pop() 
-            // const id = fileName.split('.')[0]
-
-            // const result = await cloudinary.uploader.destroy(id)
-            // console.log(result)
-
             // upload avatar
             const avatarUpload = await cloudinary.uploader.upload(req.file.path, {
                 folder: 'users',

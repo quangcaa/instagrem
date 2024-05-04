@@ -7,7 +7,6 @@ const Like = new Schema(
     {
         _id: { type: String, default: uuidv4 },
         post_id: { type: Number, ref: 'posts' },
-        comment_id: { type: String, ref: 'comments' },
         user_id: { type: String, required: true },
     },
     {

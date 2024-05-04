@@ -4,12 +4,12 @@ const session = require('express-session')
 const cookieParser = require('cookie-parser')
 const { Server } = require("socket.io")
 const path = require('path')
-const startBackup = require('./backup/cron')
+const startBackup = require('./utils/cron')
 
 const route = require('./routes')
 const mongodb_con = require('./config/database/mongodb')
 
-require('dotenv').config()
+require("dotenv").config();
 
 const app = express()
 const PORT = process.env.PORT
@@ -17,8 +17,8 @@ const PORT = process.env.PORT
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors({
-    origin: 'http://localhost:3000', // Allow requests from this origin
-    credentials: true 
+  origin: 'http://localhost:3000', // Allow requests from this origin
+  credentials: true
 }))
 app.use(cookieParser())
 
@@ -29,11 +29,11 @@ mongodb_con.connect()
 startBackup()
 
 // Static files (public)
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, "public")));
 
 // Routes init
-route(app)
+route(app);
 
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`)
+  console.log(`Server listening on port ${PORT}`)
 })
