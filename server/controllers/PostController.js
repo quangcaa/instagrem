@@ -4,10 +4,12 @@ const Comment = require('../mongo_models/Comment')
 const mongoose = require('mongoose')
 
 const { sequelize, User, Follow } = require('../mysql_models')
-
-const cloudinary = require('../config/storage/cloudinary')
-
+const { s3, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('../config/storage/s3')
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner")
+const { randomMediaName } = require('../utils/randomMediaName')
 const { sendMentionActivity } = require('../utils/sendActivity')
+
+const sharp = require('sharp')
 
 class PostController {
 
@@ -18,22 +20,9 @@ class PostController {
         const { caption } = req.body
         const user_id = req.user.user_id
 
-        // let transformation = {
-        //     width: 555,
-        //     height: 555,
-        //     crop: 'fill',
-        //     gravity: 'center',
-        //     quality: 'auto:best'
-        // }
-
-        // check if caption is provided
-        if (!caption) {
-            return res.status(400).json({ success: false, error: 'Missing caption' })
-        }
-
-        // check if media is provided
-        if (!req.files['image'] && !req.files['video']) {
-            return res.status(400).json({ success: false, error: 'Please provide the image to upload.' })
+        // check if caption and image is provided
+        if (!caption && !req.files) {
+            return res.status(400).json({ success: false, error: 'Please provide caption or media file.' })
         }
 
         // extract hashtags and mentions
@@ -44,39 +33,51 @@ class PostController {
         try {
             let mediaUrls = []
 
-            if (req.files['image']) {
-                const images = req.files['image']
-                for (let image of images) {
-                    const imageResult = await cloudinary.uploader.upload(image.path, { folder: 'posts', resource_type: 'auto' })
-                    mediaUrls.push(imageResult.secure_url)
-                }
-            }
+            if (req.files) {
+                const images = req.files
 
-            if (req.files['video']) {
-                const video = req.files['video'][0]
-                const videoResult = await cloudinary.uploader.upload(video.path, { folder: 'posts', resource_type: 'video' })
-                mediaUrls.push(videoResult.secure_url)
+                if (images.length > 5) {
+                    return res.status(400).json({ success: false, error: 'Maximum 5 images allowed.' })
+                }
+
+                for (let image of images) {
+                    const buffer = await sharp(image.buffer)
+                        .resize({ width: 560, height: 770, fit: 'contain' })
+                        .toBuffer()
+
+                    const params = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: randomMediaName(),
+                        Body: buffer,
+                        ContentType: image.mimetype
+                    }
+
+                    const command = new PutObjectCommand(params)
+                    await s3.send(command)
+
+                    mediaUrls.push(params.Key)
+                }
             }
 
             const newPost = new Post({
                 caption,
                 media_url: mediaUrls,
-                hashtags: hashtags,
-                mentions: mentions,
+                hashtags,
+                mentions,
                 user_id,
             })
 
             await newPost.save()
 
-            // add mention acitivty
+            // add mention activity
             for (let mention of mentions) {
                 const receiver = await User.findOne({ username: mention.substring(1) })
-                if (receiver.length > 0 && receiver !== null) {
-                    sendMentionActivity(req, user_id, receiver[0].user_id, 'mentions', newPost._id, '', 'Mentioned you', newPost.caption)
+                if (receiver && receiver !== null) {
+                    sendMentionActivity(req, user_id, receiver.user_id, 'mentions', newPost._id, '', 'Mentioned you', newPost.caption)
                 }
             }
 
-            res.json({ success: true, message: 'Created post !', post: newPost })
+            res.json({ success: true, message: 'Created post!', post: newPost })
         } catch (error) {
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
@@ -151,13 +152,21 @@ class PostController {
 
             await session.commitTransaction()
 
+            // delete on s3
+            for (let image of deletedPost.media_url) {
+                const params = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: image
+                }
+                const command = new DeleteObjectCommand(params)
+                await s3.send(command)
+            }
+
             res.json({
                 success: true, message: 'Deleted post !',
                 post: deletedPost,
             })
         } catch (error) {
-            await session.abortTransaction()
-
             console.error('Error deletePost function: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
@@ -175,6 +184,21 @@ class PostController {
             if (!postById || postById.status === 'DELETED' || postById.status === "ARCHIVED") {
                 return res.status(404).json({ success: false, message: 'Post not found' })
             }
+
+            let mediaUrls = []
+
+            for (let image of postById.media_url) {
+                // get signed url for media
+                const getObjectParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: image
+                }
+                const command = new GetObjectCommand(getObjectParams)
+                const url = await getSignedUrl(s3, command, { expiresIn: 60 })
+                mediaUrls.push(url)
+            }
+
+            postById.media_url = mediaUrls
 
             // get post author
             const postAuthor = await User.findByPk(
@@ -215,6 +239,23 @@ class PostController {
             const posts = await Post.find({ user_id: user.user_id })
                 .sort({ createdAt: -1 })
                 .select({ post_type: 0, status: 0, updatedAt: 0 })
+
+            for (let post of posts) {
+                let mediaUrls = []
+
+                for (let image of post.media_url) {
+                    // get signed url for media
+                    const getObjectParams = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: image
+                    }
+                    const command = new GetObjectCommand(getObjectParams)
+                    const url = await getSignedUrl(s3, command, { expiresIn: 60 })
+                    mediaUrls.push(url)
+                }
+
+                post.media_url = mediaUrls
+            }
 
             return res.status(200).json({ success: true, user, posts })
         } catch (error) {
