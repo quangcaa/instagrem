@@ -18,8 +18,8 @@ import useShowToast from "../hooks/useShowToast";
 function ModalFollowers({ nameOfButton }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
-  const showToast = useShowToast();
   const { username } = useParams();
+  const showToast = useShowToast();
   const [followers, setFollowers] = useState([]);
   const btnRef = React.useRef(null);
 
@@ -31,16 +31,17 @@ function ModalFollowers({ nameOfButton }) {
           { credentials: "include" }
         );
         const data = await res.json();
-        // console.log("Fetched data:", data); // Add this line to see what data is returned
+        console.log("Fetched data:", data); // Add this line to see what data is returned
         if (data.error) {
           showToast("Error", data.error, "error");
           return;
         }
-        setFollowers(data.user); // Ensure data.Follower is not undefined
+        setFollowers(data.Follower || data.user); // Ensure data.Follower is not undefined
       } catch (error) {
         console.error(error); // Add this line to see fetch errors
       }
     };
+
     if (isOpen) {
       getFollowers();
     }
@@ -49,8 +50,6 @@ function ModalFollowers({ nameOfButton }) {
   const handleOpen = () => {
     onOpen();
   };
-
-  // console.log("Followers:", followers); // Add this line to see the state of followers
 
   return (
     <>
@@ -77,7 +76,7 @@ function ModalFollowers({ nameOfButton }) {
               followers.map((follower) => (
                 <Button
                   key={follower.user_id}
-                  bg={useColorModeValue("white", "gray.dark")}
+                  // bg={useColorModeValue("white", "gray.dark")}
                   w="full"
                   onClick={() => {
                     navigate(`/${follower.username}`);

@@ -1,6 +1,6 @@
 import { Input, Button, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const SearchButton = ({ updateSearchResults }) => {
     const [searchText, setSearchText] = useState("");
@@ -32,7 +32,7 @@ const SearchButton = ({ updateSearchResults }) => {
     };
 
     return (
-        <InputGroup style={{ marginBottom: "1rem" }} >
+        <InputGroup style={{ marginBottom: "1rem" }}>
             <Input
                 type="text"
                 placeholder="Search users"
@@ -41,7 +41,7 @@ const SearchButton = ({ updateSearchResults }) => {
                 onKeyDown={handleKeyDown} // Add keydown event handler
             />
             <InputRightElement>
-                <Button onClick={handleSearch} type="submit" aria-label="Search">
+                <Button onClick={handleSearch} type="submit" aria-label="Search" variant='outline' colorScheme="blue">
                     <SearchIcon />
                 </Button>
             </InputRightElement>

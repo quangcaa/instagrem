@@ -146,18 +146,20 @@ const UserHeader = ({ user }) => {
             size={"sm"}
             onClick={handleFollowUnfollow}
             isLoading={updating}
+            variant="outline" colorScheme="black"
           >
             {following ? "Unfollow" : "Follow"}
           </Button>
         ) : (
           <Link as={RouterLink} to={"/update"}>
-            <Button size={"sm"}>Update Profile</Button>
+            <Button size={"sm"} variant="outline" colorScheme="black">Update Profile</Button>
           </Link>
         )
       ) : (
         <Link as={RouterLink} to={"/auth"}>
-          <Button size="sm">Follow</Button>
+          <Button size="sm" variant="outline" colorScheme="black">Follow</Button>
         </Link>
+
       )}
 
       <Flex w={"full"} justifyContent={"space-between"}>
@@ -168,20 +170,18 @@ const UserHeader = ({ user }) => {
           <ModalFollowing nameOfButton={`${followingCount} followings`} />
         </Flex>
         <Flex>
-          <Box className="icon-container">
-            <Menu>
-              <MenuButton>
-                <CgMoreO size={24} cursor={"pointer"} />
-              </MenuButton>
-              <Portal>
-                <MenuList bg={"gray.dark"}>
-                  <MenuItem bg={"gray.dark"} onClick={copyURL}>
-                    Copy link
-                  </MenuItem>
-                </MenuList>
-              </Portal>
-            </Menu>
-          </Box>
+          <Menu>
+            <MenuButton>
+              <CgMoreO size={24} cursor={"pointer"} />
+            </MenuButton>
+            <Portal>
+              <MenuList>
+                <MenuItem onClick={copyURL}>
+                  Copy link
+                </MenuItem>
+              </MenuList>
+            </Portal>
+          </Menu>
         </Flex>
       </Flex>
 

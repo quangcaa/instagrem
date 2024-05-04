@@ -23,13 +23,13 @@ import postsAtom from "../atoms/postsAtom";
 const PostPage = () => {
   const { user, loading } = useGetUserProfile();
   const [posts, setPosts] = useRecoilState(postsAtom);
-  const { post_id } = useParams();
+  const { username, post_id } = useParams();
   const showToast = useShowToast();
   const currentUser = useRecoilValue(userAtom);
   const navigate = useNavigate();
 
   const currentPost = posts[0];
-  console.log(currentPost);
+  // console.log(currentPost);
 
   useEffect(() => {
     const getPost = async () => {
@@ -38,7 +38,7 @@ const PostPage = () => {
       try {
         const res = await fetch(`http://localhost:1000/post/${post_id}`, {
           method: "GET",
-          credentials: "include",
+          credentials: "include"
         });
 
         const data = await res.json();
@@ -58,6 +58,7 @@ const PostPage = () => {
 
     getPost();
   }, [post_id, showToast, setPosts]);
+
 
   const handleDeletePost = async () => {
     try {
