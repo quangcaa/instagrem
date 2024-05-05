@@ -11,6 +11,7 @@ import { useSocket } from "../context/SocketContext";
 
 
 const MessageContainer = memo(() => {
+  const token = localStorage.getItem("token");
   const bgColor = useColorModeValue("gray.200", "gray.dark");
   const showToast = useShowToast();
 
@@ -37,6 +38,9 @@ const MessageContainer = memo(() => {
         const res = await fetch(`http://localhost:1000/direct/c/${selectedConversation.user_id}`, {
           method: "GET",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
         });
         const data = await res.json();
         if (data.error) {

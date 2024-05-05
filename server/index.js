@@ -1,10 +1,9 @@
-const {app} = require("./socket/socket.js");
-const {server} = require("./socket/socket.js");
+const { app } = require("./socket/socket.js")
+const { server } = require("./socket/socket.js")
 const express = require('express')
 const cors = require('cors')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
-//const { Server } = require("socket.io")
 const path = require('path')
 const startBackup = require('./utils/cron')
 
@@ -19,7 +18,7 @@ const PORT = process.env.PORT
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors({
-    origin: `process.env.WEB_URL`,
+    origin: process.env.WEB_URL,
     // origin: 'http://localhost:3000',
     credentials: true,
 }))
