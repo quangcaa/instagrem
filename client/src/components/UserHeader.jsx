@@ -27,12 +27,15 @@ const UserHeader = ({ user }) => {
     if (currentUser) {
       const fetchFollowStatus = async () => {
         try {
+          const token = localStorage.getItem("token");
+
           const res = await fetch(
             `http://localhost:1000/user/${user.username}/checkFollow`,
             {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
               },
               credentials: "include",
             }
@@ -69,12 +72,15 @@ const UserHeader = ({ user }) => {
 
     try {
       // ... (follow/unfollow logic remains the same)
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
         `http://localhost:1000/user/${user.username}/follow`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           credentials: "include",
         }

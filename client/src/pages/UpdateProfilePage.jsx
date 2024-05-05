@@ -35,6 +35,7 @@ export default function UpdateProfilePage() {
   }
 
   const [updating, setUpdating] = useState(false);
+  const token = localStorage.getItem("token");
 
   const { handleImageChange, imgUrl } = usePreviewImg();
   const handleChangeAvatar = async () => {
@@ -45,11 +46,15 @@ export default function UpdateProfilePage() {
     }
     const formData = new FormData();
     formData.append("image", file);
+
     try {
       const res = await fetch("http://localhost:1000/account/avatar", {
         method: "PUT",
         credentials: "include",
         body: formData,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        }
       });
 
       const data = await res.json();
@@ -81,6 +86,7 @@ export default function UpdateProfilePage() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(inputs),
       });

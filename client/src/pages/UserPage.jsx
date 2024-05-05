@@ -18,10 +18,15 @@ const UserPage = () => {
   useEffect(() => {
 
     const getPosts = async () => {
+      const token = localStorage.getItem("token");
+
       try {
         const res = await fetch(`http://localhost:1000/post/u/${username}`, {
           method: "GET",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
         });
         const data = await res.json();
 
@@ -57,7 +62,12 @@ const UserPage = () => {
     <>
       <UserHeader user={user} />
 
-      {!fetchingPosts && posts.length === 0 && <h1>User has not posts.</h1>}
+
+      {!fetchingPosts && posts.length === 0 && (
+        <Flex justifyContent="center" mt={3}>
+          <h1>User has not posts.</h1>
+        </Flex>
+      )}
       {fetchingPosts && (
         <Flex justifyContent={"center"} my={12} >
           <Spinner size={"xl"} />

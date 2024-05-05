@@ -35,10 +35,15 @@ const PostPage = () => {
     const getPost = async () => {
       setPosts([]);
 
+      const token = localStorage.getItem("token");
+
       try {
         const res = await fetch(`http://localhost:1000/post/${post_id}`, {
           method: "GET",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
         });
 
         const data = await res.json();
@@ -47,8 +52,6 @@ const PostPage = () => {
           showToast("Error", data.error, "error");
           return;
         }
-
-        // console.log(data)
 
         setPosts([data]);
       } catch (error) {
@@ -63,11 +66,16 @@ const PostPage = () => {
     try {
       if (!window.confirm("Are you sure you want to delete this post?")) return;
 
+      const token = localStorage.getItem("token");
+
       const res = await fetch(
         `http://localhost:1000/post/${currentPost.post._id}`,
         {
           method: "DELETE",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
         }
       );
       const data = await res.json();

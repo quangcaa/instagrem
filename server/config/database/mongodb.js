@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { loggerMONGO } = require('../../logger/winston')
+const { loggerMONGO } = require('../../utils/winston')
 require('dotenv').config()
 
 mongoose.set('debug', (collectionName, method, query, doc) => {

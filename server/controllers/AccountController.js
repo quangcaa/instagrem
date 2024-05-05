@@ -1,5 +1,6 @@
 const { sequelize, User } = require('../mysql_models')
 const { client } = require('../config/database/redis')
+
 const cloudinary = require('../config/storage/cloudinary')
 
 const { updateProfileValidator } = require('../utils/validation')
@@ -73,23 +74,14 @@ class AccountController {
             return res.status(400).json({ error: 'Please provide image.' })
         }
 
-        try {
-            // delete the last one
-            // const deletaAvatarQuery = `
-            //                            SELECT profile_image_url
-            //                            FROM users
-            //                            WHERE user_id = ?
-            //                            `
-            // const [lastAvatar] = await mysql_con.promise().query(deletaAvatarQuery, [user_id])
-            // const parts = lastAvatar[0].profile_image_url.split('/')
-            // const fileName = parts.pop() 
-            // const id = fileName.split('.')[0]
+        console.log(req.file)
 
-            // const result = await cloudinary.uploader.destroy(id)
-            // console.log(result)
+        try {
+            const b64 = Buffer.from(req.file.buffer).toString("base64");
+            let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
             // upload avatar
-            const avatarUpload = await cloudinary.uploader.upload(req.file.path, {
+            const avatarUpload = await cloudinary.uploader.upload(dataURI, {
                 folder: 'users',
                 resource_type: 'image',
                 width: 96,
@@ -125,7 +117,7 @@ class AccountController {
     // @access Private
     async deleteAvatar(req, res) {
         const user_id = req.user.user_id
-        const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
+        const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1714885396/users/default_avatar.jpg'
 
         try {
             // update the database

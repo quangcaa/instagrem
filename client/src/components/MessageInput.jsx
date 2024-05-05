@@ -5,6 +5,8 @@ import useShowToast from '../hooks/useShowToast';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { conversationsAtom, selectedConversationAtom } from '../atoms/messagesAtom';
 
+const token = localStorage.getItem('token');
+
 const MessageInput = ({ setMessages }) => {
   const [messageText, setMessageText] = useState('');
   const showToast = useShowToast();
@@ -20,6 +22,7 @@ const MessageInput = ({ setMessages }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
         body: JSON.stringify({ text: messageText }),

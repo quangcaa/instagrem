@@ -20,6 +20,7 @@ export default function ChangePassWordPage() {
     newPassword: "",
   });
   const handleChangePass = async () => {
+    const token = localStorage.getItem("token");
     // console.log(inputs);
     try {
       const res = await fetch("http://localhost:1000/auth/changePassword", {
@@ -27,6 +28,7 @@ export default function ChangePassWordPage() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(inputs),
       });

@@ -13,7 +13,7 @@ router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
 router.get('/:post_id', postController.retrievePost)
 router.get('/u/:username', postController.retrieveUserPosts)
 
-router.post('/create', postLimit, requireAuth, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), postController.createPost)
+router.post('/create', postLimit, requireAuth, upload.array('image', 5), postController.createPost)
 router.put('/:post_id', requireAuth, postController.updatePost)
 router.delete('/:post_id', requireAuth, postController.deletePost)
 

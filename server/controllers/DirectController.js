@@ -30,6 +30,8 @@ class DirectController {
                 const lastMessage = await Message.findOne({ _id: conversation.lastMessage_id })
                     .sort({ createdAt: -1 })
 
+                console.log('lastMessage: ', lastMessage)
+
                 return {
                     conversation: {
                         ...conversation.toObject(),

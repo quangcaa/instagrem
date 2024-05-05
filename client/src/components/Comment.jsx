@@ -8,12 +8,15 @@ const Comment = ({ comment }) => {
   const [liked, setLiked] = useState(comment.likes_count);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
     const fetchUser = async () => {
       try {
         const res = await fetch(`http://localhost:1000/user/${comment.user_id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           credentials: "include",
         });

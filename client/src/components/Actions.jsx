@@ -17,6 +17,8 @@ const Actions = ({ post: post_ }) => {
 
   const showToast = useShowToast();
 
+  const token = localStorage.getItem("token");
+
   const handleLikeAndUnlike = async () => {
     if (!user) return showToast("Error", "You need to login to like a post", "error");
     if (isLiked) return
@@ -27,6 +29,7 @@ const Actions = ({ post: post_ }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
         // body: JSON.stringify({ post_id: post._id }),
@@ -67,6 +70,7 @@ const Actions = ({ post: post_ }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
         body: JSON.stringify({ comment: reply }),

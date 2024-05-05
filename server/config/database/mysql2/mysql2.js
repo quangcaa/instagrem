@@ -1,4 +1,4 @@
-const { loggerMYSQL } = require('../../../logger/winston')
+const { loggerMYSQL } = require('../../../utils/winston')
 require('dotenv').config()
 
 module.exports = {
