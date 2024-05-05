@@ -8,12 +8,19 @@ import { BsCheck2All } from 'react-icons/bs';
 import { selectedConversationAtom } from '../atoms/messagesAtom';
 
 
-const Conversation = ({ conversation, user, lastMessage }) => {
+const Conversation = ({ conversation, user, lastMessage, isOnline }) => {
   const currentUser = useRecoilValue(userAtom)
   const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
-
+  //const lastMessage = conversation.lastMessage;
+	
   const colorMode = useColorMode()
 
+  console.log("selectedConverstion", selectedConversation);
+  console.log("Is Online:", isOnline);
+  //console.log("key:", key);
+  // console.log("conversation:", conversation);
+  // console.log("user:", user);
+  // console.log("lastMessage:", lastMessage);
   return (
     <Flex
       gap={4}
@@ -25,14 +32,17 @@ const Conversation = ({ conversation, user, lastMessage }) => {
         color: 'white',
       }}
       onClick={() => {
-        setSelectedConversation({
-          _id: conversation._id,
-          user_id: user.user_id,
-          username: user.username,
-          userProfilePic: user.profile_image_url
-        })
+        if (conversation) {
+          setSelectedConversation({
+              _id: conversation._id,
+              user_id: user.user_id,
+              username: user.username,
+              userProfilePic: user.profile_image_url
+          })
+      }
       }}
-      bg={selectedConversation?._id === conversation._id ? (colorMode === 'light' ? 'gray.600' : 'gray.dark') : ""}
+      bg={selectedConversation && selectedConversation._id === conversation._id ? (colorMode === 'light' ? 'gray.600' : 'gray.dark') : ""}
+
       borderRadius={"md"}
     >
       <WrapItem>
@@ -41,7 +51,7 @@ const Conversation = ({ conversation, user, lastMessage }) => {
           sm: "sm",
           md: "md",
         }} src={user.profile_image_url} >
-          <AvatarBadge boxSize={"1em"} bg={"green.500"} />
+          {isOnline ? <AvatarBadge boxSize={"1em"} bg={"green.500"} /> : ""}
         </Avatar>
       </WrapItem>
 

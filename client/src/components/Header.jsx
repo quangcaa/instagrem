@@ -10,6 +10,7 @@ import authScreenAtom from "../atoms/authAtom";
 import NotificationButton from "./NotificationButton";
 import CreatePost from "./CreatePost";
 import LogoutButton from "./LogoutButton";
+import { BsFillChatQuoteFill } from "react-icons/bs";
 
 const Header = () => {
 	const { colorMode, toggleColorMode } = useColorMode();
@@ -57,6 +58,12 @@ const Header = () => {
 
 			{user && (
 				<NotificationButton />
+			)}
+
+			{user && (
+				<Link as={RouterLink} to={`/chat`}>
+					<BsFillChatQuoteFill size={30} />
+				</Link>
 			)}
 
 			{user && (

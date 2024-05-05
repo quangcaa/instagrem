@@ -6,6 +6,9 @@ import { Avatar, Divider, Flex, Image, SkeletonCircle, Text, useColorModeValue, 
 import React, { memo, useEffect, useState } from "react";
 import { selectedConversationAtom } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
+import { useSocket } from "../context/SocketContext";
+
+
 
 const MessageContainer = memo(() => {
   const bgColor = useColorModeValue("gray.200", "gray.dark");
@@ -15,6 +18,15 @@ const MessageContainer = memo(() => {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [messages, setMessages] = useState([]);
   const currentUser = useRecoilValue(userAtom);
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    socket.on("newMessage", (message) => {
+      setMessages((preMessages) => [...preMessages, message])
+    })
+  
+    return () => socket.off("newMessage");
+  }, [socket])
 
   useEffect(() => {
     const getMessage = async () => {
