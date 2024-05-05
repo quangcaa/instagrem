@@ -5,61 +5,56 @@ const { getRecipientSocketId, io } = require("../socket/socket.js");
 const { sequelize, User } = require("../mysql_models");
 
 class DirectController {
-  // [GET] /direct/inbox
-  // @desc Retrieve inbox
-  // @access Private
-  async retrieveInbox(req, res) {
-    const current_user = req.user.user_id;
+    // [GET] /direct/inbox
+    // @desc Retrieve inbox
+    // @access Private
+    async retrieveInbox(req, res) {
+        const current_user = req.user.user_id
 
-    try {
-      const conversations = await Conversation.find({
-        participants: { $in: [current_user] },
-      });
+        try {
+            const conversations = await Conversation.find({
+                participants: { $in: [current_user] }
+            })
 
-      if (!conversations) {
-        return res.json({ message: "No inbox found" });
-      }
+            if (!conversations) {
+                return res.json({ message: 'No inbox found' })
+            }
 
-      const inbox = await Promise.all(
-        conversations.map(async (conversation) => {
-          const partner_id = conversation.participants.filter(
-            (participant) => participant.toString() !== current_user.toString()
-          );
+            const inbox = await Promise.all(conversations.map(async (conversation) => {
+                const partner_id = conversation.participants.filter(participant => participant.toString() !== current_user.toString())
 
-          const user = await User.findOne({
-            where: { user_id: partner_id },
-          });
+                const user = await User.findOne({
+                    where: { user_id: partner_id }
+                })
 
-          const lastMessage = await Message.findOne({
-            _id: conversation.lastMessage_id,
-          }).sort({ createdAt: -1 });
+                const lastMessage = await Message.findOne({ _id: conversation.lastMessage_id })
+                    .sort({ createdAt: -1 })
 
-          return {
-            conversation: {
-              ...conversation.toObject(),
-              participants: partner_id,
-            },
-            user: {
-              user_id: user.user_id,
-              username: user.username,
-              profile_image_url: user.profile_image_url,
-            },
-            lastMessage: {
-              text: lastMessage.text,
-              createdAt: lastMessage.createdAt,
-              sender_id: lastMessage.sender_id,
-            },
-          };
-        })
-      );
+                console.log('lastMessage: ', lastMessage)
 
-      res.status(200).json(inbox);
-    } catch (error) {
-      console.error(
-        "Error retrieveInbox function in DirectController: ",
-        error
-      );
-      return res.status(500).json({ error: "Internal Server Error" });
+                return {
+                    conversation: {
+                        ...conversation.toObject(),
+                        participants: partner_id
+                    },
+                    user: {
+                        user_id: user.user_id,
+                        username: user.username,
+                        profile_image_url: user.profile_image_url
+                    },
+                    lastMessage: {
+                        text:lastMessage.text,
+                        createdAt: lastMessage.createdAt,
+                        sender_id: lastMessage.sender_id
+                    }
+                }
+            }))
+
+            res.status(200).json(inbox)
+        } catch (error) {
+            console.error('Error retrieveInbox function in DirectController: ', error)
+            return res.status(500).json({ error: 'Internal Server Error' })
+        }
     }
   }
 

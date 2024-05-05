@@ -11,21 +11,23 @@ const LogoutButton = () => {
   const setAuthScreen = useSetRecoilState(authScreenAtom);
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch("http://localhost:1000/auth/logout", {
         method: "POST",
         credentials: "include",
-
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
-
       });
       const data = await res.json();
-      //   console.log(data);
+
       if (data.error) {
         showToast("Error", data.error, "error");
         return;
       }
+      
       localStorage.removeItem("userInfo");
       setUser(null);
     } catch (error) {

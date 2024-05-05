@@ -27,11 +27,16 @@ const ChatPage = () => {
     //console.log("onlineUsers:", onlineUsers);
 
     useEffect(() => {
+        const token = localStorage.getItem("token");
+
         const getConversations = async () => {
             try {
                 const res = await fetch("http://localhost:1000/direct/inbox", {
                     method: "GET",
                     credentials: "include",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
                 });
                 const data = await res.json();
                 if (data.error) {
@@ -55,11 +60,16 @@ const ChatPage = () => {
     const handleConversationSearch = async (e) => {
         e.preventDefault();
         setSearchingUser(true);
+        
+        const token = localStorage.getItem("token");
 
         try {
             const res = await fetch(`http://localhost:1000/search/${searchText}`, {
                 method: "GET",
                 credentials: "include",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             const searchUser = await res.json();

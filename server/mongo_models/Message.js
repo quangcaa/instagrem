@@ -7,7 +7,6 @@ const Message = new Schema(
         sender_id: { type: String, required: true },
         receiver_id: { type: String, required: true },
         text: { type: String, required: true },
-        reply_story_id: { type: String, ref: 'stories', default: null }
     },
     {
         timestamps: true
@@ -16,3 +15,4 @@ const Message = new Schema(
 
 module.exports = mongoose.model('messages', Message)
 
+ 

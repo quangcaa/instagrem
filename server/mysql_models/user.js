@@ -20,15 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         as: 'getFollowers'
       });
 
-      User.hasMany(models.searchHistory, {
-        foreignKey: 'user_id',
-        as: 'getSearch'
-      });
-      User.hasMany(models.searchHistory, {
-        foreignKey: 'looking_for_user_id',
-        as: 'getLookFor'
-      });
-
       User.hasMany(models.Block, {
         foreignKey: 'blocker_user_id',
         as: 'getBlocks'

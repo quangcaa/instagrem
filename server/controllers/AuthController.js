@@ -2,11 +2,13 @@ const argon2 = require('argon2')
 require('dotenv').config()
 
 const { registerValidator, changePasswordValidator } = require('../utils/validation')
-const generateTokenAndSetCookie = require('../utils/generateToken')
+const generateToken = require('../utils/generateToken')
 
 const { client } = require('../config/database/redis')
 
 const { User } = require('../mysql_models')
+
+const jwt = require('jsonwebtoken')
 
 class AuthController {
 
@@ -46,15 +48,17 @@ class AuthController {
             // log
             console.log('User login with ID: ' + user.user_id)
 
-            // generate token & set cookie
-            generateTokenAndSetCookie(user.user_id, res)
+            // generate token 
+            const token = generateToken(user.user_id)
 
             // cache user data in Redis
             await client.set(`getProfile:${user.user_id}`, JSON.stringify(user), { EX: 60 })
 
+            // send token to local storage
             res.json({
                 success: true, message: 'Login successful',
-                user
+                user,
+                token
             })
         } catch (error) {
             console.error('Error login function in AuthController: ', error)
@@ -68,7 +72,7 @@ class AuthController {
     // @access Public
     async register(req, res) {
         const { username, email, password } = req.body
-        const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1713180957/users/default_avatar.jpg'
+        const default_avatar_url = 'https://res.cloudinary.com/dzgglqmdc/image/upload/v1714885396/users/default_avatar.jpg'
 
         // validate
         const { error } = registerValidator(req.body)
@@ -99,7 +103,7 @@ class AuthController {
             console.log('User registered with ID: ' + newUser.user_id)
 
             // generate token & set cookie
-            generateTokenAndSetCookie(newUser.user_id, res)
+            const token = generateToken(newUser.user_id)
 
             // cache user data in Redis
             await client.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser))
@@ -111,7 +115,8 @@ class AuthController {
                     username: newUser.username,
                     email: newUser.email,
                     profile_image_url: newUser.profile_image_url
-                }
+                }, 
+                token
             })
         } catch (error) {
             console.error('Error register function in AuthController: ', error)
