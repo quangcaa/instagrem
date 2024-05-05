@@ -11,6 +11,8 @@ import useShowToast from "../hooks/useShowToast";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
+import { useSocket } from "../context/SocketContext";
+
 
 const ChatPage = () => {
     const showToast = useShowToast();
@@ -20,6 +22,9 @@ const ChatPage = () => {
     const [searchText, setSeachText] = useState("");
     const [searchingUser, setSearchingUser] = useState(false);
     const currentUser = useRecoilValue(userAtom);
+    const { socket, onlineUsers } = useSocket();
+
+    //console.log("onlineUsers:", onlineUsers);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -34,6 +39,10 @@ const ChatPage = () => {
                     }
                 });
                 const data = await res.json();
+                if (data.error) {
+                    showToast("Error", data.error, "error");
+                    return;
+                }
                 console.log(data);
 
                 setConversations(data);
@@ -69,15 +78,40 @@ const ChatPage = () => {
                 showToast("Error", searchUser.error, "error")
                 return
             }
+            console.log(searchUser);
 
-            if (conversations.find(conversation => conversation.user.user_id === searchUser.searchList.user_id)) {
+            const searchUserArray = Object.values(searchUser);
+            // console.log(searchUserArray[1][0]);
+            const choseUser = searchUserArray[1][0];
+
+            // If user is already in conversation with searched user
+            const conversationAlreadyExists = conversations.find(
+                (conversation) => conversation.participants[0].user_id.toString() === searchUser.user_id.toString()
+            );
+            if (conversationAlreadyExists) {
                 setSelectedConversation({
-                    _id: conversations.find(conversation => conversation.user.user_id.toString() === searchUser.searchList.user_id.toString())._id,
-                    user_id: searchUser.user_id,
-                    username: searchUser.username,
-                    userProfilePic: searchUser.profile_image_url
+                    _id: conversations.find(conversation => conversation.user.user_id.toString() === choseUser.searchList.user_id.toString())._id,
+                    user_id: choseUser.user_id,
+                    username: choseUser.username,
+                    userProfilePic: choseUser.profile_image_url
                 })
             }
+
+            const mockConversation = {
+                lastMessage: {
+                    text: "",
+                    sender: ""
+                },
+                _id: Date.now(),
+                participants: [
+                    {
+                        user_id: searchUser.user_id,
+                        username: searchUser.username,
+                        userProfilePic: searchUser.profile_image_url
+                    }
+                ]
+            }
+            setConversations((prevConvs) => [...prevConvs, mockConversation]);
 
         } catch (error) {
             showToast("Error", error.message, "error")
@@ -141,13 +175,18 @@ const ChatPage = () => {
 
                     {!loadingConversation && (
                         conversations.map((conversation) => (
-                            <Conversation key={conversation.conversation._id}
+                            // Kiểm tra xem conversation có tồn tại và có thuộc tính _id không
+                            // conversation && conversation.conversation && conversation.conversation._id &&
+                            <Conversation
+                                key={conversation.conversation._id}
+                                isOnline={onlineUsers.includes(conversation.conversation.participants[0].user_id)}
                                 conversation={conversation.conversation}
                                 user={conversation.user}
                                 lastMessage={conversation.lastMessage}
+                                
                             />
+                            
                         ))
-
                     )}
                 </Flex>
 

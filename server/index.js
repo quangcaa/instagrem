@@ -1,8 +1,10 @@
+const {app} = require("./socket/socket.js");
+const {server} = require("./socket/socket.js");
 const express = require('express')
 const cors = require('cors')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
-const { Server } = require("socket.io")
+//const { Server } = require("socket.io")
 const path = require('path')
 const startBackup = require('./utils/cron')
 
@@ -11,7 +13,7 @@ const mongodb_con = require('./config/database/mongodb')
 
 require('dotenv').config()
 
-const app = express()
+
 const PORT = process.env.PORT
 
 app.use(express.urlencoded({ extended: true }))
@@ -35,6 +37,6 @@ app.use(express.static(path.join(__dirname, 'public')))
 // Routes init
 route(app)
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`)
 })
