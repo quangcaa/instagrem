@@ -326,6 +326,23 @@ class PostController {
                 .limit(20)
                 .skip(Number(offset))
 
+            for (let post of userFollowingPost) {
+                let mediaUrls = []
+
+                for (let image of post.media_url) {
+                    // get signed url for media
+                    const getObjectParams = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: image
+                    }
+                    const command = new GetObjectCommand(getObjectParams)
+                    const url = await getSignedUrl(s3, command, { expiresIn: 60 })
+                    mediaUrls.push(url)
+                }
+
+                post.media_url = mediaUrls
+            }
+
             res.status(200).json({ success: true, user: user_id, posts: userFollowingPost })
         } catch (error) {
             console.log(error)

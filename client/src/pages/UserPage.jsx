@@ -18,10 +18,15 @@ const UserPage = () => {
   useEffect(() => {
 
     const getPosts = async () => {
+      const token = localStorage.getItem("token");
+
       try {
         const res = await fetch(`http://localhost:1000/post/u/${username}`, {
           method: "GET",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
         });
         const data = await res.json();
 

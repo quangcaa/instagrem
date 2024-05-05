@@ -29,7 +29,8 @@ export default function LoginCard() {
   });
   const showToast = useShowToast();
   const handleLogin = async () => {
-    try {
+
+    try {  
       const res = await fetch("http://localhost:1000/auth/login", {
         method: "POST",
         credentials: "include",
@@ -39,11 +40,12 @@ export default function LoginCard() {
         body: JSON.stringify(inputs)
       });
       const data = await res.json();
+      localStorage.setItem("token", data.token);
+
       if (data.error) {
         showToast("Error", data.error, "error");
         return;
       }
-      // console.log(data);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
       setUser(data.user);
     } catch (error) {

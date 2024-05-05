@@ -197,9 +197,14 @@ const NotificationButton = () => {
 
     const handleOpenNotification = async () => {
         try {
+            const token = localStorage.getItem("token");
+
             const res = await fetch(`http://localhost:1000/activity`, {
                 method: "GET",
                 credentials: "include",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             // Check for successful response status (usually 200-299)

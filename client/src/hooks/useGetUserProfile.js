@@ -10,9 +10,14 @@ const useGetUserProfile = () => {
 
     useEffect(() => {
         const getUser = async () => {
+            const token = localStorage.getItem("token");
+
             try {
                 const res = await fetch(`http://localhost:1000/user/${username}`, {
-                    method: "GET"
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    }
                 });
 
                 const data = await res.json();

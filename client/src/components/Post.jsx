@@ -41,8 +41,13 @@ const Post = ({ post, user_id }) => {
   useEffect(() => {
     const getUser = async () => {
       try {
+        const token = localStorage.getItem("token");
+
         const res = await fetch(`http://localhost:1000/user/${user_id}`, {
           method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
         });
 
         const data = await res.json();
@@ -67,9 +72,14 @@ const Post = ({ post, user_id }) => {
       e.preventDefault();
       if (!window.confirm("Are you sure you want to delete this post?")) return;
 
+      const token = localStorage.getItem("token");
+
       const res = await fetch(`http://localhost:1000/post/${post._id}`, {
         method: "DELETE",
         credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       const data = await res.json();
