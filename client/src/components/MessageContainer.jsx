@@ -6,8 +6,12 @@ import { Avatar, Divider, Flex, Image, SkeletonCircle, Text, useColorModeValue, 
 import React, { memo, useEffect, useState } from "react";
 import { selectedConversationAtom } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
+import { useSocket } from "../context/SocketContext";
+
+
 
 const MessageContainer = memo(() => {
+  const token = localStorage.getItem("token");
   const bgColor = useColorModeValue("gray.200", "gray.dark");
   const showToast = useShowToast();
 
@@ -15,6 +19,15 @@ const MessageContainer = memo(() => {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [messages, setMessages] = useState([]);
   const currentUser = useRecoilValue(userAtom);
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    socket.on("newMessage", (message) => {
+      setMessages((preMessages) => [...preMessages, message])
+    })
+  
+    return () => socket.off("newMessage");
+  }, [socket])
 
   useEffect(() => {
     const getMessage = async () => {
@@ -25,6 +38,9 @@ const MessageContainer = memo(() => {
         const res = await fetch(`http://localhost:1000/direct/c/${selectedConversation.user_id}`, {
           method: "GET",
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
         });
         const data = await res.json();
         if (data.error) {

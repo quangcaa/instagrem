@@ -9,8 +9,13 @@ const SearchButton = ({ updateSearchResults }) => {
         if (!searchText) return; // Prevent empty search requests
 
         try {
+            const token = localStorage.getItem("token");
+
             const response = await fetch(`http://localhost:1000/search/${searchText}`, {
                 method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
                 credentials: "include",
             });
             const data = await response.json();

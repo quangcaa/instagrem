@@ -7,6 +7,7 @@
     "server": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -37,7 +38,8 @@
     "shelljs": "^0.8.5",
     "socket.io": "^4.7.5",
     "uuid": "^9.0.1",
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",

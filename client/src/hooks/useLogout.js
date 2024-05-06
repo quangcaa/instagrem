@@ -7,11 +7,14 @@ const useLogout = () => {
 	const showToast = useShowToast();
 
 	const logout = async () => {
+		const token = localStorage.getItem("token");
+
 		try {
 			const res = await fetch("http://localhost:1000/auth/logout", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					"Authorization": `Bearer ${token}`,
 				},
 				credentials: "include",
 			});

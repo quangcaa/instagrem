@@ -7,7 +7,7 @@ moment.tz.setDefault('Asia/Ho_Chi_Minh')
 
 function startBackup() {
 
-  cron.schedule('*/5 * * * *', function () {
+  cron.schedule('0 0 * * *', function () {
     const currentTime = moment().format()
     console.log(`Backup started at ${currentTime}\n`)
 
@@ -30,4 +30,4 @@ function startBackup() {
   })
 } 
 
-module.exports = startBackup 
+module.exports = startBackup

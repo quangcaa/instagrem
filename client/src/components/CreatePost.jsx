@@ -78,10 +78,15 @@ const CreatePost = () => {
     // formData.append('image', selectedFiles);
 
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch(`http://localhost:1000/post/create`, {
         method: "POST",
         credentials: "include",
         body: formData,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       const data = await res.json();
@@ -91,11 +96,28 @@ const CreatePost = () => {
         // if (username === user?.username) {
         //   setPosts([data.post, ...posts]);
         // }
-        setPosts([data.post, ...posts]);
       } else {
         showToast("Error", data.error, "error");
         return;
       }
+
+      const res2 = await fetch(`http://localhost:1000/post/${data.post._id}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      const data2 = await res2.json();
+
+      if (data2.error) {
+        showToast("Error", data2.error, "error");
+        return;
+      }
+
+      setPosts([data2.post, ...posts]);
+
       //   if (username === user.username) {
       //     setPosts([data.post, ...posts]);
       //   }

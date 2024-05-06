@@ -19,6 +19,7 @@ import { useSetRecoilState } from "recoil";
 import authScreenAtom from "../atoms/authAtom";
 import useShowToast from "../hooks/useShowToast";
 import userAtom from "../atoms/userAtom";
+const token = localStorage.getItem("token");
 export default function LoginCard() {
   const [showPassword, setShowPassword] = useState(false);
   const setAuthScreen = useSetRecoilState(authScreenAtom);
@@ -29,21 +30,24 @@ export default function LoginCard() {
   });
   const showToast = useShowToast();
   const handleLogin = async () => {
-    try {
+
+    try {  
       const res = await fetch("http://localhost:1000/auth/login", {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(inputs)
       });
       const data = await res.json();
+      localStorage.setItem("token", data.token);
+
       if (data.error) {
         showToast("Error", data.error, "error");
         return;
       }
-      // console.log(data);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
       setUser(data.user);
     } catch (error) {

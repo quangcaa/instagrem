@@ -10,6 +10,7 @@ import userAtom from "./atoms/userAtom";
 import SearchPage from "./pages/SearchPage";
 import UpdateProfilePage from "./pages/UpdateProfilePage";
 import ChangePassWordPage from "./pages/ChangePassWordPage";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   const user = useRecoilValue(userAtom);
@@ -45,6 +46,10 @@ function App() {
         <Route
           path="/search"
           element={user ? <SearchPage /> : <Navigate to="/auth" />}
+        />
+        <Route
+          path="/chat"
+          element={user ? <ChatPage /> : <Navigate to="/auth" />}
         />
       </Routes>
 

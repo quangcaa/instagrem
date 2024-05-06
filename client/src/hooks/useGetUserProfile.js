@@ -3,41 +3,43 @@ import { useParams } from "react-router-dom";
 import useShowToast from "./useShowToast";
 
 const useGetUserProfile = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { username } = useParams();
-  const showToast = useShowToast();
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const { username } = useParams();
+    const showToast = useShowToast();
 
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const res = await fetch(`http://localhost:1000/user/${username}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
+    useEffect(() => {
+        const getUser = async () => {
+            const token = localStorage.getItem("token");
 
-        const data = await res.json();
+            try {
+                const res = await fetch(`http://localhost:1000/user/${username}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    }
+                });
 
-        if (data.error) {
-          showToast("Error", data.error, "error");
-          return;
-        }
+                const data = await res.json();
 
-        setUser(data.user);
-      } catch (error) {
-        showToast("Error", error.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    };
+                if (data.error) {
+                    showToast("Error", data.error, "error");
+                    return;
+                }
 
-    getUser();
-  }, [username, showToast]);
+                setUser(data.user);
 
-  return { loading, user };
+            } catch (error) {
+                showToast("Error", error.message, "error");
+            } finally {
+                setLoading(false)
+            }
+        };
+
+        getUser();
+    }, [username, showToast]);
+
+    return { loading, user };
 };
 
 export default useGetUserProfile;
