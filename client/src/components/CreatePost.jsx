@@ -21,27 +21,26 @@ import {
 import { useRef, useState } from "react";
 import usePreviewImg from "../hooks/usePreviewingImg";
 import { IoCreateOutline } from "react-icons/io5";
-import { BsFillImageFill } from "react-icons/bs";
-import { useRecoilState, useRecoilValue } from "recoil";
-import userAtom from "../atoms/userAtom";
+import { FaImages } from "react-icons/fa";
+import { useRecoilState } from "recoil";
 import useShowToast from "../hooks/useShowToast";
 import postsAtom from "../atoms/postsAtom";
-import { useParams } from "react-router-dom";
 
 const MAX_CHAR = 500;
 const MAX_IMAGES = 5;
 
 const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
   const [postText, setPostText] = useState("");
+  const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
+  const [posts, setPosts] = useRecoilState(postsAtom);
+
   const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
   const imageRef = useRef(null);
-  const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
-  const user = useRecoilValue(userAtom);
+
   const showToast = useShowToast();
   const [loading, setLoading] = useState(false);
-  const [posts, setPosts] = useRecoilState(postsAtom);
-  const { username } = useParams();
 
   const handleTextChange = (e) => {
     const inputText = e.target.value;
@@ -60,11 +59,11 @@ const CreatePost = () => {
     setLoading[true];
     const selectedFiles = imageRef.current.files;
 
-    if (!selectedFiles.length) {
-      showToast("Error", "Please select image(s) to upload", "error");
-      setLoading(false);
-      return;
-    }
+    // if (!selectedFiles.length) {
+    //   showToast("Error", "Please select image(s) to upload", "error");
+    //   setLoading(false);
+    //   return;
+    // }
 
     const formData = new FormData();
     formData.append("caption", postText);
@@ -132,6 +131,36 @@ const CreatePost = () => {
     }
   };
 
+  const handleImageRemove = (index) => {
+    const updatedImages = [...imgUrl];
+    updatedImages.splice(index, 1);
+    setImgUrl(updatedImages);
+  };
+
+  // const handleImageSelect = (e) => {
+  //   const selectedFiles = e.target.files;
+
+  //   // Check for exceeding maximum image limit
+  //   if (selectedFiles.length + imgUrl.length > MAX_IMAGES) {
+  //     showToast(
+  //       "Error",
+  //       `You can only select up to ${MAX_IMAGES} images`,
+  //       "error"
+  //     );
+  //     return;
+  //   }
+
+  //   const validImages = [];
+  //   for (let i = 0; i < selectedFiles.length; i++) {
+  //     const file = selectedFiles[i];
+  //     if (file && file.type.startsWith("image/")) {
+  //       validImages.push(URL.createObjectURL(file));
+  //     }
+  //   }
+
+  //   setImgUrl([...imgUrl, ...validImages]);
+  // };
+
   return (
     <>
       <IconButton
@@ -145,15 +174,17 @@ const CreatePost = () => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create Post</ModalHeader>
+          <ModalHeader>Create New Post</ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
+          <ModalBody pb={1}>
             <FormControl>
+
               <Textarea
-                placeholder="Post content goes here..."
+                placeholder="Write a caption..."
                 onChange={handleTextChange}
                 value={postText}
               />
+
               <Text
                 fontSize="xs"
                 fontWeight="bold"
@@ -163,6 +194,11 @@ const CreatePost = () => {
               >
                 {remainingChar}/{MAX_CHAR}
               </Text>
+              <FaImages
+                style={{ cursor: "pointer" }}
+                size={16}
+                onClick={() => imageRef.current.click()}
+              />
 
               <Input
                 type="file"
@@ -172,11 +208,7 @@ const CreatePost = () => {
                 onChange={handleImageChange}
               />
 
-              <BsFillImageFill
-                style={{ marginLeft: "5px", cursor: "pointer" }}
-                size={16}
-                onClick={() => imageRef.current.click()}
-              />
+
             </FormControl>
 
             {imgUrl.length > 0 && ( // Display previews only if images are selected
@@ -186,26 +218,22 @@ const CreatePost = () => {
                     imageUrl,
                     index // Loop through each image URL
                   ) => (
-                    <Image
-                      key={index}
-                      src={imageUrl}
-                      alt={`Selected Image ${index + 1}`}
-                      mr={2}
-                      maxWidth="100%" // Ensure images don't overflow the modal width
-                      maxHeight="200px" // Set a maximum height for previews (adjust as needed)
-                      objectFit="cover" // Crop images to fit within the container
-                    /> // Add unique keys and spacing
+                    <div key={index} style={{ position: "relative" }}> {/* New container */}
+                      <Image
+                        src={imageUrl}
+                        alt={`Selected Image ${index + 1}`}
+                        mr={2}
+                        maxWidth="100%"
+                        maxHeight="200px"
+                        objectFit="cover"
+                      />
+                      <CloseButton
+                        onClick={() => handleImageRemove(index)}
+                        style={{ position: "absolute", top: 5, right: 5 }} // Positioned within container
+                      />
+                    </div>
                   )
                 )}
-                <CloseButton
-                  onClick={() => {
-                    setImgUrl([]);
-                  }}
-                  // position={"absolute"}
-                  top={2}
-                  right={2}
-                  size="md"
-                />
               </Flex>
             )}
           </ModalBody>
@@ -216,7 +244,7 @@ const CreatePost = () => {
               onClick={handleCreatePost}
               isLoading={loading}
             >
-              Post
+              Share
             </Button>
           </ModalFooter>
         </ModalContent>

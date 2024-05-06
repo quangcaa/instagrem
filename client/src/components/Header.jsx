@@ -32,6 +32,14 @@ const Header = () => {
 				</Link>
 			)} */}
 
+			{/* <Image
+				cursor={"pointer"}
+				alt='logo'
+				w={6}
+				src={colorMode === "dark" ? "/light-logo.svg" : "/dark-logo.svg"}
+				onClick={toggleColorMode}
+			/> */}
+
 			{user && (
 				<Link as={RouterLink} to="/">
 					<GoHome size={30} />
@@ -43,14 +51,6 @@ const Header = () => {
 					<IoSearchOutline size={30} />
 				</Link>
 			)}
-
-			{/* <Image
-				cursor={"pointer"}
-				alt='logo'
-				w={6}
-				src={colorMode === "dark" ? "/light-logo.svg" : "/dark-logo.svg"}
-				onClick={toggleColorMode}
-			/> */}
 
 			{user && (
 				<CreatePost />

@@ -6,7 +6,11 @@ import {
     DrawerContent,
     useDisclosure,
     IconButton,
-    Button
+    Button,
+    Box,
+    Flex,
+    Text,
+    Link
 } from "@chakra-ui/react";
 import { GoHeart, GoHeartFill } from "react-icons/go";
 import useShowToast from '../hooks/useShowToast';
@@ -66,94 +70,194 @@ const Notification = ({ activity }) => {
         switch (type) {
             case "follows":
                 return (
-                    <div style={{ display: 'flex', marginBottom: '10px' }}>
-                        <a href={`/${activity.username}`}>
-                            <img
-                                src={activity.profile_image_url}
-                                alt={`${activity.username}'s profile picture`}
-                                className="profile-image"
-                                style={{ width: '50px', height: '50px', borderRadius: '50%' }} // Inline styles
-                            />
-                        </a>
-                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
-                            <a href={`/${activity.username}`}>
-                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
-                            </a>
-                            started following you.&nbsp;
-                            <span style={{ fontSize: '0.8em', color: 'gray' }}>{timeString} </span>
-                        </p>
-                    </div>
+                    <Box // Use Box for container with styling options
+                        display="flex"
+                        marginBottom="10px"
+                        alignItems="center" // Align content vertically
+                    >
+                        <Link // Use Link for anchor tag with styling options
+                            href={`/${activity.username}`}
+                            isExternal // Indicate external link for accessibility
+                        >
+                            <Box // Use Box for image container with styling options
+                                width="50px" // Set consistent image width
+                                height="50px"
+                                borderRadius="full" // Create rounded profile image
+                                overflow="hidden" // Prevent image overflow
+                            >
+                                <img
+                                    src={activity.profile_image_url}
+                                    alt={`${activity.username}'s profile picture`}
+                                />
+                            </Box>
+                        </Link>
+                        <Text // Use Text for styled text content
+                            display="inline-block"
+                            marginLeft="10px"
+                        >
+                            <Link // Use Link for username with styling options
+                                href={`/${activity.username}`}
+                                fontWeight="bold" // Bold username
+                            >
+                                {activity.username}
+                            </Link>
+                            {' '}  {/* Add a space after username */}
+                            started following you.
+                            <Text // Use Text for timestamp with styling options
+                                fontSize="0.8em"
+                                color="gray"
+                            >
+                                {timeString}
+                            </Text>
+                        </Text>
+                    </Box>
                 );
             case "likes":
                 return (
-                    <div style={{ display: 'flex', marginBottom: '10px' }}>
-                        <a href={`/${activity.username}`}>
-                            <img
-                                src={activity.profile_image_url}
-                                alt={`${activity.username}'s profile picture`}
-                                className="profile-image"
-                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                            />
-                        </a>
-                        <p style={{ display: 'inline-block', marginLeft: '10px' }}>
-                            <a href={`/${activity.username}`}>
-                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
-                            </a>
+                    <Box // Use Box for container with styling options
+                        display="flex"
+                        marginBottom="10px"
+                        alignItems="center" // Align content vertically
+                    >
+                        <Link // Use Link for anchor tags (username and post title)
+                            href={`/${activity.username}`}
+                            isExternal // Indicate external link for accessibility
+                        >
+                            <Box // Use Box for image container with styling options
+                                width="50px" // Set consistent image width
+                                height="50px"
+                                borderRadius="full" // Create rounded profile image
+                                overflow="hidden" // Prevent image overflow
+                            >
+                                <img
+                                    src={activity.profile_image_url}
+                                    alt={`${activity.username}'s profile picture`}
+                                />
+                            </Box>
+                        </Link>
+                        <Text // Use Text for styled text content
+                            display="inline-block"
+                            marginLeft="10px"
+                        >
+                            <Link // Use Link for username with styling options
+                                href={`/${activity.username}`}
+                                fontWeight="bold" // Bold username
+                            >
+                                {activity.username}
+                            </Link>
+                            {' '}  {/* Add a space after username */}
                             liked your post:
-                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
-                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                            <Link // Use Link for post title with styling options
+                                href={`/${activity.username}/post/${activity.post_id}`}
+                            >
+                                "{activity.activity_message}"
+                            </Link>
+                            <Text // Use Text for timestamp with styling options
+                                fontSize="0.8em"
+                                color="gray"
+                            >
                                 {timeString}
-                            </span>
-                        </p>
-
-                    </div>
+                            </Text>
+                        </Text>
+                    </Box>
                 );
             case "replies":
                 return (
-                    <div style={{ display: 'flex', marginBottom: '10px' }}>  {/* Wrap in a flexbox */}
-                        <a href={`/${activity.username}`}>
-                            <img
-                                src={activity.profile_image_url}
-                                alt={`${activity.username}'s profile picture`}
-                                className="profile-image"
-                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                            />
-                        </a>
-                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Text content */}
-                            <a href={`/${activity.username}`}>
-                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
-                            </a>
+                    <Box // Use Box for container with styling options
+                        display="flex"
+                        marginBottom="10px"
+                        alignItems="center" // Align content vertically
+                    >
+                        <Link // Use Link for anchor tags (username and post title)
+                            href={`/${activity.username}`}
+                            isExternal // Indicate external link for accessibility
+                        >
+                            <Box // Use Box for image container with styling options
+                                width="50px" // Set consistent image width
+                                height="50px"
+                                borderRadius="full" // Create rounded profile image
+                                overflow="hidden" // Prevent image overflow
+                            >
+                                <img
+                                    src={activity.profile_image_url}
+                                    alt={`${activity.username}'s profile picture`}
+                                />
+                            </Box>
+                        </Link>
+                        <Text // Use Text for styled text content
+                            display="inline-block"
+                            marginLeft="10px"
+                        >
+                            <Link // Use Link for username with styling options
+                                href={`/${activity.username}`}
+                                fontWeight="bold" // Bold username
+                            >
+                                {activity.username}
+                            </Link>
+                            {' '}  {/* Add a space after username */}
                             commented on your post:
-                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
-                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                            <Link // Use Link for post title with styling options
+                                href={`/${activity.username}/post/${activity.post_id}`}
+                            >
+                                "{activity.activity_message}"
+                            </Link>
+                            <Text // Use Text for timestamp with styling options
+                                fontSize="0.8em"
+                                color="gray"
+                            >
                                 {timeString}
-                            </span>
-                        </p>
-                    </div>
-
+                            </Text>
+                        </Text>
+                    </Box>
                 );
             case "mentions":
                 return (
-                    <div style={{ display: 'flex', marginBottom: '10px' }}>
-                        <a href={`/${activity.username}`}>
-                            <img
-                                src={activity.profile_image_url}
-                                alt={`${activity.username}'s profile picture`}
-                                className="profile-image"
-                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                            />
-                        </a>
-                        <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
-                            <a href={`/${activity.username}`}>
-                                <span style={{ fontWeight: 'bold' }}>{activity.username} </span>
-                            </a>
+                    <Box // Use Box for container with styling options
+                        display="flex"
+                        marginBottom="10px"
+                        alignItems="center" // Align content vertically
+                    >
+                        <Link // Use Link for anchor tag with styling options
+                            href={`/${activity.username}`}
+                            isExternal // Indicate external link for accessibility
+                        >
+                            <Box // Use Box for image container with styling options
+                                width="50px" // Set consistent image width
+                                height="50px"
+                                borderRadius="full" // Create rounded profile image
+                                overflow="hidden" // Prevent image overflow
+                            >
+                                <img
+                                    src={activity.profile_image_url}
+                                    alt={`${activity.username}'s profile picture`}
+                                />
+                            </Box>
+                        </Link>
+                        <Text // Use Text for styled text content
+                            display="inline-block"
+                            marginLeft="10px"
+                        >
+                            <Link // Use Link for username with styling options
+                                href={`/${activity.username}`}
+                                fontWeight="bold" // Bold username
+                            >
+                                {activity.username}
+                            </Link>
+                            {'\u00A0'}
                             mentioned you on their post:
-                            <a href={`/${activity.username}/post/${activity.post_id}`}> "{activity.activity_message}". </a>
-                            <span style={{ fontSize: '0.8em', color: 'gray' }}>
+                            <Link // Use Link for post link with styling options
+                                href={`/${activity.username}/post/${activity.post_id}`}
+                            >
+                                " {activity.activity_message} ".
+                            </Link>
+                            <Text // Use Text for timestamp with styling options
+                                fontSize="0.8em"
+                                color="gray"
+                            >
                                 {timeString}
-                            </span>
-                        </p>
-                    </div>
+                            </Text>
+                        </Text>
+                    </Box>
                 );
             case "reposts":
                 return (
@@ -162,8 +266,6 @@ const Notification = ({ activity }) => {
                             <img
                                 src={activity.profile_image_url}
                                 alt={`${activity.username}'s profile picture`}
-                                className="profile-image"
-                                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                             />
                         </a>
                         <p style={{ display: 'inline-block', marginLeft: '10px' }}> {/* Inline style for text positioning */}
@@ -273,10 +375,9 @@ const NotificationButton = () => {
                             <p>No notifications yet.</p>
                         )}
 
-                        <Button mt={4} variant="outline" onClick={handleMarkAllRead}>
+                        <Button mt={4} variant="outline" onClick={handleMarkAllRead} colorScheme='black'>
                             Mark Notifications as Read
                         </Button>
-
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>

@@ -29,7 +29,7 @@ function App() {
         />
         <Route
           path="/:username"
-          element={<UserPage />}
+          element={user ? <UserPage /> : <Navigate to="/auth" />}
         />
         <Route
           path="/:username/post/:post_id"

@@ -4,7 +4,7 @@ require('dotenv').config()
 const { registerValidator, changePasswordValidator } = require('../utils/validation')
 const generateToken = require('../utils/generateToken')
 
-const { client } = require('../config/database/redis')
+const { client: redisClient } = require('../config/database/redis')
 
 const { User } = require('../mysql_models')
 
@@ -52,7 +52,7 @@ class AuthController {
             const token = generateToken(user.user_id)
 
             // cache user data in Redis
-            await client.set(`getProfile:${user.user_id}`, JSON.stringify(user), { EX: 60 })
+            await redisClient.set(`getProfile:${user.user_id}`, JSON.stringify(user), { EX: 60 })
 
             // send token to local storage
             res.json({
@@ -106,7 +106,7 @@ class AuthController {
             const token = generateToken(newUser.user_id)
 
             // cache user data in Redis
-            await client.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser))
+            await redisClient.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser))
 
             res.status(201).json({
                 success: true, message: "User registered successfully",
@@ -115,7 +115,7 @@ class AuthController {
                     username: newUser.username,
                     email: newUser.email,
                     profile_image_url: newUser.profile_image_url
-                }, 
+                },
                 token
             })
         } catch (error) {
@@ -131,7 +131,7 @@ class AuthController {
     async logout(req, res) {
         try {
             // clear redis cache
-            await client.del(`getProfile:${req.user.user_id}`)
+            await redisClient.del(`getProfile:${req.user.user_id}`)
 
             res.cookie('jwt', '', { maxAge: 0 })
             return res.status(200).json({ message: 'Logged out successfully' })

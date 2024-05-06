@@ -9,6 +9,8 @@ import userAtom from "../atoms/userAtom";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
+import ModalFollowers from "./ModalFollowers";
+import ModalFollowing from "./ModalFollowing";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
@@ -150,40 +152,42 @@ const UserHeader = ({ user }) => {
             size={"sm"}
             onClick={handleFollowUnfollow}
             isLoading={updating}
+            variant="outline" colorScheme="black"
           >
             {following ? "Unfollow" : "Follow"}
           </Button>
         ) : (
           <Link as={RouterLink} to={"/update"}>
-            <Button size={"sm"}>Update Profile</Button>
+            <Button size={"sm"} variant="outline" colorScheme="black">Update Profile</Button>
           </Link>
         )
       ) : (
         <Link as={RouterLink} to={"/auth"}>
-          <Button size="sm">Follow</Button>
+          <Button size="sm" variant="outline" colorScheme="black">Follow</Button>
         </Link>
+
       )}
 
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={5} alignItems={"center"}>
-          <Text color={"gray.light"}>{followerCount} followers</Text>
-          <Text color={"gray.light"}>{followingCount} followings</Text>
+          {/* <Text color={"gray.light"}>{followerCount} followers</Text> */}
+          <ModalFollowers nameOfButton={`${followerCount} followers`} />
+          {/* <Text color={"gray.light"}>{followingCount} followings</Text> */}
+          <ModalFollowing nameOfButton={`${followingCount} followings`} />
         </Flex>
         <Flex>
-          <Box className="icon-container">
-            <Menu>
-              <MenuButton>
-                <CgMoreO size={24} cursor={"pointer"} />
-              </MenuButton>
-              <Portal>
-                <MenuList bg={"gray.dark"}>
-                  <MenuItem bg={"gray.dark"} onClick={copyURL}>
-                    Copy link
-                  </MenuItem>
-                </MenuList>
-              </Portal>
-            </Menu>
-          </Box>
+          <Menu>
+            <MenuButton>
+              <CgMoreO size={24} cursor={"pointer"} />
+            </MenuButton>
+            <Portal>
+              <MenuList>
+                <MenuItem onClick={copyURL}>
+                  Copy link
+                </MenuItem>
+              </MenuList>
+            </Portal>
+          </Menu>
         </Flex>
       </Flex>
 
