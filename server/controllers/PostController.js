@@ -130,8 +130,9 @@ class PostController {
         const { post_id } = req.params
         const user_id = req.user.user_id
 
+        const session = await mongoose.startSession()
+
         try {
-            const session = await mongoose.startSession()
             session.startTransaction()
 
             const postDeleteCondition = { _id: post_id, user_id: user_id }
@@ -151,6 +152,7 @@ class PostController {
             ])
 
             await session.commitTransaction()
+            session.endSession()
 
             // delete on s3
             for (let image of deletedPost.media_url) {
@@ -167,6 +169,8 @@ class PostController {
                 post: deletedPost,
             })
         } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
             console.error('Error deletePost function: ', error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
