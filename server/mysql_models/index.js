@@ -46,4 +46,6 @@ sequelize
     console.error('Unable to connect to MySQL:', err);
   });
 
+
+
 module.exports = db

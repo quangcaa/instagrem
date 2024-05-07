@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  master:
+    image: mysql/mysql-server:5.7
+    container_name: master
+    networks:
+      - replicanet
+    hostname: master
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./d0:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+    command: ["--server-id=1", "--log-bin=mysql-bin-1.log"]
+
+  slave1:
+    image: mysql/mysql-server:5.7
+    container_name: slave1
+    networks:
+      - replicanet
+    hostname: slave1
+    ports:
+      - "3309:3306"
+    volumes:
+      - ./d1:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+    command: ["--server-id=2"]
+
+  slave2:
+    image: mysql/mysql-server:5.7
+    container_name: slave2
+    networks:
+      - replicanet
+    hostname: slave2
+    ports:
+      - "3310:3306"
+    volumes:
+      - ./d2:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+    command: ["--server-id=3"]
+
+networks:
+  replicanet:
+    driver: bridge

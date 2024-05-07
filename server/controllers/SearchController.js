@@ -39,6 +39,7 @@ class SearchController {
                 , {
                     replacements: [user_is_searching, searchText],
                     type: sequelize.QueryTypes.SELECT,
+                    useMaster: false
                 })
 
             if (searchResults.length === 0) {

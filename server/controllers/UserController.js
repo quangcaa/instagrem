@@ -10,7 +10,8 @@ class UserController {
     // @desc get user information by user_id or username
     // @access Public
     async retrieveUser(req, res) {
-        const { identifier } = req.params;
+        const { identifier } = req.params
+        const me = req.user.user_id
 
         try {
             // check if user exists
@@ -19,11 +20,11 @@ class UserController {
                     { user_id: identifier },
                     { username: identifier }
                 ),
-                attributes: ['user_id', 'username', 'full_name', 'bio', 'profile_image_url', 'follower_count', 'following_count']
-            });
+                attributes: ['user_id', 'username', 'full_name', 'bio', 'profile_image_url']
+            })
 
             if (!checkUser) {
-                return res.status(400).json({ success: false, error: 'User not found' });
+                return res.status(400).json({ success: false, error: 'User not found' })
             }
 
             // check if user information is cached
@@ -54,8 +55,9 @@ class UserController {
                 WHERE u.username = ?
                 `
                 , {
-                    replacements: [null, null, checkUser.username],
-                    type: sequelize.QueryTypes.SELECT
+                    replacements: [me, checkUser.user_id, checkUser.username],
+                    type: sequelize.QueryTypes.SELECT,
+                    useMaster: false
                 }
             )
 
@@ -125,7 +127,8 @@ class UserController {
                 `
                 , {
                     replacements: [me, userResults.user_id],
-                    type: sequelize.QueryTypes.SELECT
+                    type: sequelize.QueryTypes.SELECT,
+                    useMaster: false
                 }
             )
 
@@ -192,7 +195,8 @@ class UserController {
                 `
                 , {
                     replacements: [me, userResults.user_id],
-                    type: sequelize.QueryTypes.SELECT
+                    type: sequelize.QueryTypes.SELECT,
+                    useMaster: false
                 }
             )
 
@@ -234,23 +238,23 @@ class UserController {
     //     }
 
     //     const userFollowed = userResults.user_id
-    //     const transaction = await sequelize.transaction();
+    //     const transaction = await sequelize.transaction()
     //     try {
     //         // Check if already followed within transaction
     //         const checkFollowed = await Follow.findOne({
     //             where: { follower_user_id: user_id, followed_user_id: userFollowed },
     //             transaction,
-    //         });
+    //         })
 
     //         if (!checkFollowed) {
     //             // Follow (within transaction)
     //             await Follow.create({
     //                 follower_user_id: user_id,
     //                 followed_user_id: userFollowed,
-    //             }, { transaction });
+    //             }, { transaction })
 
     //             // Send follow activity notification (within transaction)
-    //             sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you', transaction);
+    //             sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you', transaction)
     //         } else {
     //             // Unfollow (within transaction)
     //             await Follow.destroy({
@@ -259,15 +263,15 @@ class UserController {
     //                     followed_user_id: userFollowed,
     //                 },
     //                 transaction,
-    //             });
+    //             })
     //         }
 
-    //         await transaction.commit();
-    //         return res.status(200).json({ success: true, message: (checkFollowed ? 'Unfollowed ! ! !' : 'Followed ! ! !') });
+    //         await transaction.commit()
+    //         return res.status(200).json({ success: true, message: (checkFollowed ? 'Unfollowed ! ! !' : 'Followed ! ! !') })
     //     } catch (error) {
-    //         console.log(error);
-    //         await transaction.rollback();
-    //         return res.status(500).json({ success: false, message: 'Internal server error' });
+    //         console.log(error)
+    //         await transaction.rollback()
+    //         return res.status(500).json({ success: false, message: 'Internal server error' })
     //     }
     // }
     async followUser(req, res) {

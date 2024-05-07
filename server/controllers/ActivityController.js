@@ -42,7 +42,8 @@ class ActivityController {
                 `,
                 {
                     replacements: [receiver_id],
-                    type: sequelize.QueryTypes.SELECT
+                    type: sequelize.QueryTypes.SELECT,
+                    useMaster: false
                 }
             )
 
