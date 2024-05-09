@@ -20,7 +20,7 @@ const HomePage = () => {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          "http://localhost:1000/post/following/:offset",
+          "http://localhost:1000/post/following",
           {
             method: "GET",
             headers: {

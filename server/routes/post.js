@@ -7,7 +7,7 @@ const postLimit = require('../middlewares/rateLimit')
 
 const postController = require('../controllers/PostController')
 
-router.get('/following/:offset', requireAuth, postController.retrieveFollowingFeed)
+router.get('/following', requireAuth, postController.retrieveFollowingFeed)
 router.get('/explore/:hashtag', requireAuth, postController.retrieveHashtagPost)
 
 router.get('/:post_id', postController.retrievePost)

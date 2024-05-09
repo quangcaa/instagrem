@@ -10,8 +10,7 @@ const loggerMYSQL = winston.createLogger({
             datePattern: 'YYYY-MM-DD',
             zippedArchive: false,
             maxSize: '50m',
-            maxFiles: '1d',
-            frequency: '5m'
+            maxFiles: '14d',
         })
     ]
 })
@@ -25,8 +24,7 @@ const loggerMONGO = winston.createLogger({
             datePattern: 'YYYY-MM-DD',
             zippedArchive: false,
             maxSize: '50m',
-            maxFiles: '1d',
-            frequency: '5m'
+            maxFiles: '14d',
         })
     ]
 })

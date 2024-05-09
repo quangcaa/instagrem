@@ -2,6 +2,7 @@ const Post = require('../mongo_models/Post')
 const Like = require('../mongo_models/Like')
 const Comment = require('../mongo_models/Comment')
 const mongoose = require('mongoose')
+const Hashtag = require('../mongo_models/Hashtag')
 
 const { sequelize, User, Follow } = require('../mysql_models')
 const { s3, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('../config/storage/s3')
@@ -30,7 +31,11 @@ class PostController {
         const mentions = extractMentions(caption)
 
         // create post
+        const session = await mongoose.startSession()
+
         try {
+            session.startTransaction()
+
             let mediaUrls = []
 
             if (req.files) {
@@ -41,14 +46,14 @@ class PostController {
                 }
 
                 for (let image of images) {
-                    const buffer = await sharp(image.buffer)
-                        .resize({ width: 560, height: 770, fit: 'contain' })
-                        .toBuffer()
+                    // const buffer = await sharp(image.buffer)
+                    //     .resize({ width: 560, height: 770, fit: 'contain' })
+                    //     .toBuffer()
 
                     const params = {
                         Bucket: process.env.BUCKET_NAME,
                         Key: randomMediaName(),
-                        Body: buffer,
+                        Body: image.buffer,
                         ContentType: image.mimetype
                     }
 
@@ -67,7 +72,19 @@ class PostController {
                 user_id,
             })
 
-            await newPost.save()
+            await newPost.save({ session })
+
+            // create hashtags
+            for (let hashtag of hashtags) {
+                const existingHashtag = await Hashtag.findOne({ hashtag_name: hashtag })
+
+                if (!existingHashtag) {
+                    const newHashtag = new Hashtag({ 
+                        hashtag_name: hashtag 
+                    })
+                    await newHashtag.save({ session })
+                }
+            }
 
             // add mention activity
             for (let mention of mentions) {
@@ -77,8 +94,14 @@ class PostController {
                 }
             }
 
+            await session.commitTransaction()
+            session.endSession()
+
             res.json({ success: true, message: 'Created post!', post: newPost })
         } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+
             console.log(error)
             res.status(500).json({ success: false, message: 'Internal server error' })
         }
@@ -311,12 +334,11 @@ class PostController {
     }
 
 
-    // @route [GET] /post/following/:offset
+    // @route [GET] /post/following
     // @desc retrieve user following feed
     // @access Private
     async retrieveFollowingFeed(req, res) {
         const user_id = req.user.user_id
-        const { offset = 0 } = req.params
 
         try {
             const followingList = await Follow.findAll({
@@ -327,8 +349,6 @@ class PostController {
 
             const userFollowingPost = await Post.find({ user_id: { $in: followingListIds } })
                 .sort({ likes_count: -1, comments_count: -1, createdAt: -1 })
-                .limit(20)
-                .skip(Number(offset))
 
             for (let post of userFollowingPost) {
                 let mediaUrls = []

@@ -14,11 +14,11 @@ async function connect() {
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    });
+    })
     console.log('Connected to MongoDB database ...')
   } catch (error) {
     console.log(`Error connecting to MongoDB:\n${error.message}`)
   }
 }
 
-module.exports = { connect };
+module.exports = { connect }

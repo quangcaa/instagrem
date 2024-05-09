@@ -21,7 +21,7 @@ function startBackup() {
 
     // MySQL Backup 
     shell.env['MYSQL_PWD'] = process.env.MYSQL_DB_PASSWORD
-    if (shell.exec(`mysqldump -u ${process.env.MYSQL_DB_USER} ${process.env.MYSQL_DB_DATABASE} > ${process.env.MYSQL_BACKUP_DIR}/mysql.sql`).code !== 0) {
+    if (shell.exec(`mysqldump -u ${process.env.MYSQL_DB_USER} -h ${process.env.MYSQL_DB_HOST} -P ${process.env.MYSQL_DB_PORT} ${process.env.MYSQL_DB_DATABASE} > ${process.env.MYSQL_BACKUP_DIR}/mysql.sql`).code !== 0) {
       console.error('MySQL backup failed')
       shell.exit(1)
     } else {

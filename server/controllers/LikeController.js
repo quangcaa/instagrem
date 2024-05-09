@@ -1,6 +1,7 @@
 const Post = require('../mongo_models/Post')
 const Like = require('../mongo_models/Like')
 const Comment = require('../mongo_models/Comment')
+const mongoose = require('mongoose')
 
 const { sequelize, User } = require('../mysql_models')
 
@@ -15,28 +16,45 @@ class LikeController {
         const { post_id } = req.params
         const me = req.user.user_id
 
+        const session = await mongoose.startSession()
+
         try {
+            session.startTransaction()
+
             // check if post exists
-            const post = await Post.findById(post_id)
+            const post = await Post.findById(post_id).session(session)
             if (!post) {
+                await session.abortTransaction()
+                session.endSession()
                 return res.status(404).json({ success: false, error: 'Post not found' })
             }
 
             // check if user already liked post
-            const existingLike = await Like.findOne({ post_id, user_id: me })
+            const existingLike = await Like.findOne({ post_id, user_id: me }).session(session)
 
             if (existingLike) {
                 // conditions 
                 const likeDeleteCondition = { _id: existingLike._id, post_id: post_id, user_id: me }
 
                 // unlike post
-                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition)
+                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition).session(session)
 
                 if (deletedLike) {
                     // decrement post likes count
-                    await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: -1 } })
+                    await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: -1 } }).session(session)
+
+                    // send like activity
+                    sendLikeActivity(req, me, post.user_id, 'likes', post._id, '', 'Liked your post', post.caption)
+
+                    // Commit the transaction
+                    await session.commitTransaction()
+                    session.endSession()
+
                     return res.json({ success: true, message: 'Unliked post !' })
                 }
+
+                await session.abortTransaction()
+                session.endSession()
 
                 return res.status(500).json({ error: 'Failed to unlike post !' })
             }
@@ -46,16 +64,23 @@ class LikeController {
                 post_id,
                 user_id: me,
             })
-            await newLike.save()
+            await newLike.save({ session })
 
             // increment post likes count
-            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } })
+            await Post.findByIdAndUpdate(post_id, { $inc: { likes_count: 1 } }).session(session)
 
             // send like activity
             sendLikeActivity(req, me, post.user_id, 'likes', post._id, '', 'Liked your post', post.caption)
 
+            // Commit the transaction
+            await session.commitTransaction()
+            session.endSession()
+
             res.json({ success: true, message: 'Liked post ! ! !' })
         } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+
             console.error('Error likePost function in LikeController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
@@ -69,28 +94,45 @@ class LikeController {
         const { comment_id } = req.params
         const me = req.user.user_id
 
+        const session = await mongoose.startSession()
+
         try {
+            session.startTransaction()
+
             // check if comment exists
-            const comment = await Comment.findById(comment_id)
+            const comment = await Comment.findById(comment_id).session(session)
             if (!comment) {
+                await session.abortTransaction()
+                session.endSession()
                 return res.status(404).json({ success: false, error: 'Comment not found' })
             }
 
             // check if user already liked comment
-            const existingLike = await Like.findOne({ comment_id, user_id: me })
+            const existingLike = await Like.findOne({ comment_id, user_id: me }).session(session)
 
             if (existingLike) {
                 // conditions
                 const likeDeleteCondition = { _id: existingLike._id, comment_id, user_id: me }
 
                 // unlike comment
-                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition)
+                const deletedLike = await Like.findOneAndDelete(likeDeleteCondition).session(session)
 
                 if (deletedLike) {
                     // decrement comment likes count
-                    await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: -1 } })
+                    await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: -1 } }).session(session)
+
+                    // send like activity
+                    sendLikeActivity(req, me, comment.user_id, 'likes', comment.post_id, comment._id, 'Liked your comment', comment.comment)
+
+                    // Commit the transaction
+                    await session.commitTransaction()
+                    session.endSession()
+
                     return res.json({ success: true, message: 'Unliked comment !' })
                 }
+
+                await session.abortTransaction()
+                session.endSession()
 
                 return res.status(500).json({ error: 'Failed to unlike comment !' })
             }
@@ -100,16 +142,23 @@ class LikeController {
                 comment_id,
                 user_id: me,
             })
-            await newLike.save()
+            await newLike.save({ session })
 
             // increment comment likes count
-            await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } })
+            await Comment.findByIdAndUpdate(comment_id, { $inc: { likes_count: 1 } }).session(session)
 
             // send like activity
             sendLikeActivity(req, me, comment.user_id, 'likes', comment.post_id, comment._id, 'Liked your comment', comment.comment)
 
+            // Commit the transaction
+            await session.commitTransaction()
+            session.endSession()
+
             res.json({ success: true, message: 'Liked comment !' })
         } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+
             console.error('Error likeComment function in LikeController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }

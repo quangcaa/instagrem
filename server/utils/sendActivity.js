@@ -14,6 +14,7 @@ const sendLikeActivity = async (
     try {
         // send like activity
         if (String(sender_id) !== String(receiver_id)) {
+
             // check if activity exists
             const checkLike = await Activity.findOne({
                 where: { sender_id, receiver_id, activity_type, post_id, comment_id }
@@ -30,10 +31,17 @@ const sendLikeActivity = async (
                     activity_title,
                     activity_message
                 })
+
+                console.log('Like activity sent ! ! !')
+
+                return
             }
 
+            // if exists, delete activity
+            await checkLike.destroy()
+
             // log
-            console.log('Like activity sent ! ! !')
+            console.log('Delete like activity ! ! !')
         }
     } catch (error) {
         console.log(error)

@@ -1,4 +1,4 @@
-const { sequelize, User, Follow } = require('../mysql_models')
+const { sequelize, User, Follow, Activity } = require('../mysql_models')
 
 const { client } = require('../config/database/redis')
 
@@ -218,78 +218,26 @@ class UserController {
     // @route [POST] /user/:username/follow
     // @desc follow user
     // @access Private
-    // async followUser(req, res) {
-    //     const { username } = req.params
-    //     const user_id = req.user.user_id
-
-    //     const userResults = await User.findOne(
-    //         { where: { username } },
-    //         { attributes: ['user_id'] }
-    //     )
-
-    //     // check user existence
-    //     if (!userResults) {
-    //         return res.status(400).json({ success: false, error: 'User not found' })
-    //     }
-
-    //     // self-follow prevention
-    //     if (userResults.user_id === user_id) {
-    //         return res.status(400).json({ success: false, error: 'Cannot follow yourself' })
-    //     }
-
-    //     const userFollowed = userResults.user_id
-    //     const transaction = await sequelize.transaction()
-    //     try {
-    //         // Check if already followed within transaction
-    //         const checkFollowed = await Follow.findOne({
-    //             where: { follower_user_id: user_id, followed_user_id: userFollowed },
-    //             transaction,
-    //         })
-
-    //         if (!checkFollowed) {
-    //             // Follow (within transaction)
-    //             await Follow.create({
-    //                 follower_user_id: user_id,
-    //                 followed_user_id: userFollowed,
-    //             }, { transaction })
-
-    //             // Send follow activity notification (within transaction)
-    //             sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you', transaction)
-    //         } else {
-    //             // Unfollow (within transaction)
-    //             await Follow.destroy({
-    //                 where: {
-    //                     follower_user_id: user_id,
-    //                     followed_user_id: userFollowed,
-    //                 },
-    //                 transaction,
-    //             })
-    //         }
-
-    //         await transaction.commit()
-    //         return res.status(200).json({ success: true, message: (checkFollowed ? 'Unfollowed ! ! !' : 'Followed ! ! !') })
-    //     } catch (error) {
-    //         console.log(error)
-    //         await transaction.rollback()
-    //         return res.status(500).json({ success: false, message: 'Internal server error' })
-    //     }
-    // }
     async followUser(req, res) {
         const { username } = req.params
         const user_id = req.user.user_id
+
+        const transaction = await sequelize.transaction()
 
         try {
             // check if user exists
             const userResults = await User.findOne({
                 where: { username },
                 attributes: ['user_id']
-            })
+            }, { transaction })
 
             if (!userResults) {
+                await transaction.rollback()
                 return res.status(400).json({ success: false, error: 'User not found' })
             }
 
             if (userResults.user_id === user_id) {
+                await transaction.rollback()
                 return res.status(400).json({ success: false, error: 'Cannot follow yourself' })
             }
 
@@ -297,7 +245,7 @@ class UserController {
 
             // check if already followed
             const checkFollowed = await Follow.findOne(
-                { where: { follower_user_id: user_id, followed_user_id: userFollowed } }
+                { where: { follower_user_id: user_id, followed_user_id: userFollowed }, transaction }
             )
 
             if (!checkFollowed) {
@@ -305,10 +253,28 @@ class UserController {
                 await Follow.create({
                     follower_user_id: user_id,
                     followed_user_id: userFollowed
-                })
+                }, { transaction })
+
+                console.log('Inserted follow ! ! !')
 
                 // send follow activity
-                sendFollowActivity(req, user_id, userFollowed, 'follows', 'Followed you')
+                // check if activity exists
+                const checkFollowActivity = await Activity.findOne(
+                    { where: { sender_id: user_id, receiver_id: userFollowed, activity_type: 'follows' }, transaction }
+                )
+
+                // if not, add activity to db
+                if (!checkFollowActivity) {
+                    await Activity.create({
+                        sender_id: user_id,
+                        receiver_id: userFollowed,
+                        activity_type: 'follows',
+                        activity_title: 'Followed you'
+                    }, { transaction })
+
+                    // log
+                    console.log('Follow activity sent ! ! !')
+                }
 
                 // Update cached user's followers count
                 const cachedData = await client.get(`user:${userFollowed}`)
@@ -318,6 +284,7 @@ class UserController {
                     await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
                 }
 
+                await transaction.commit()
                 return res.status(200).json({ success: true, message: 'Followed ! ! !' })
             }
 
@@ -327,9 +294,24 @@ class UserController {
                     where: {
                         follower_user_id: user_id,
                         followed_user_id: userFollowed
-                    }
+                    },
+                    transaction
                 }
             )
+            console.log('Deleted follow ! ! !')
+
+            // check if activity exists
+            const checkFollowActivity = await Activity.findOne(
+                { where: { sender_id: user_id, receiver_id: userFollowed, activity_type: 'follows' }, transaction }
+            )
+
+            // if exist, delete
+            if (checkFollowActivity) {
+                await checkFollowActivity.destroy()
+
+                // log
+                console.log('Deleted activity ! ! !')
+            }
 
             // Update cached user's followers count
             const cachedData = await client.get(`user:${userFollowed}`)
@@ -339,9 +321,11 @@ class UserController {
                 await client.set(`user:${userFollowed}`, JSON.stringify(userInfo), { EX: 180 })
             }
 
+            await transaction.commit()
             return res.status(200).json({ success: true, message: 'Unfollowed ! ! !' })
         } catch (error) {
             console.log(error)
+            await transaction.rollback()
             return res.status(500).json({ success: false, message: 'Internal server error' })
         }
     }

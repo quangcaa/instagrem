@@ -6,9 +6,7 @@ const generateToken = require('../utils/generateToken')
 
 const { client: redisClient } = require('../config/database/redis')
 
-const { User } = require('../mysql_models')
-
-const jwt = require('jsonwebtoken')
+const { sequelize, User } = require('../mysql_models')
 
 class AuthController {
 
@@ -83,11 +81,14 @@ class AuthController {
         // hash the password
         const hashedPassword = await argon2.hash(password)
 
+        const transaction = await sequelize.transaction()
+
         try {
             // check if username already exists
-            const checkUsername = await User.findOne({ where: { username } })
+            const checkUsername = await User.findOne({ where: { username }, transaction })
 
             if (checkUsername) {
+                await transaction.rollback()
                 return res.status(409).json({ success: false, error: 'Username already exists' })
             }
 
@@ -97,7 +98,7 @@ class AuthController {
                 email,
                 password: hashedPassword,
                 profile_image_url: default_avatar_url
-            })
+            }, { transaction })
 
             // log 
             console.log('User registered with ID: ' + newUser.user_id)
@@ -106,7 +107,9 @@ class AuthController {
             const token = generateToken(newUser.user_id)
 
             // cache user data in Redis
-            await redisClient.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser))
+            await redisClient.set(`getProfile:${newUser.user_id}`, JSON.stringify(newUser), { EX: 60 })
+
+            await transaction.commit()
 
             res.status(201).json({
                 success: true, message: "User registered successfully",
@@ -119,6 +122,7 @@ class AuthController {
                 token
             })
         } catch (error) {
+            await transaction.rollback()
             console.error('Error register function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
@@ -149,22 +153,27 @@ class AuthController {
         const { oldPassword, newPassword } = req.body
         const user_id = req.user.user_id
 
+        const transaction = await sequelize.transaction()
+
         try {
             // get current user password
             const user = await User.findOne({
                 where: { user_id },
-                attributes: ['password']
+                attributes: ['password'],
+                transaction
             })
 
             // check if old password is correct
             const checkOldPassword = await argon2.verify(user.password, oldPassword)
             if (!checkOldPassword) {
+                await transaction.rollback()
                 return res.status(401).json({ success: false, error: 'Invalid old password' })
             }
 
             // check if new password is valid
             const { error } = changePasswordValidator(newPassword)
             if (error) {
+                await transaction.rollback()
                 return res.status(422).json({ error: error.details[0].message })
             }
 
@@ -176,15 +185,20 @@ class AuthController {
                 password: hashedPassword,
                 updated_at: new Date()
             }, {
-                where: { user_id }
+                where: { user_id },
+                transaction
             })
+
+            await transaction.commit()
 
             res.json({ success: true, message: 'Password changed successfully' })
         } catch (error) {
+            await transaction.rollback()
             console.error('Error changePassword function in AuthController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
+
 }
 
 module.exports = new AuthController()

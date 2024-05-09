@@ -2,6 +2,7 @@ const Post = require('../mongo_models/Post')
 const Like = require('../mongo_models/Like')
 const Comment = require('../mongo_models/Comment')
 const { sendReplyActivity } = require('../utils/sendActivity')
+const mongoose = require('mongoose')
 
 class CommentController {
 
@@ -18,10 +19,16 @@ class CommentController {
             return res.status(400).json({ success: false, message: 'Comment is required' })
         }
 
+        const session = await mongoose.startSession()
+
         try {
+            session.startTransaction()
+
             // check if post exists
             const post = await Post.findById(post_id)
             if (!post) {
+                await session.abortTransaction()
+                session.endSession()
                 return res.status(404).json({ success: false, message: 'Post not found' })
             }
 
@@ -31,17 +38,21 @@ class CommentController {
                 post_id,
                 user_id: me
             })
-            await newComment.save()
+            await newComment.save({ session })
 
             // increment comment count
             const postAfter = await Post.findByIdAndUpdate(
                 post_id,
                 { $inc: { comments_count: 1 } },
-                { new: true }
+                { new: true, session }
             )
 
             // send reply activity
             sendReplyActivity(req, me, post.user_id, 'replies', post._id, '', 'Replied your post', newComment.comment)
+
+            // commit the transaction
+            await session.commitTransaction()
+            session.endSession()
 
             res.status(201).json({
                 success: true, message: 'Commented post !',
@@ -49,10 +60,14 @@ class CommentController {
                 post: postAfter
             })
         } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+
             console.error('Error createComment function in CommentController: ', error)
             return res.status(500).json({ error: 'Internal Server Error' })
         }
     }
+
 
 
     // @route [POST] /comment/c/:parent_id
